@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Brianna's Job Leads</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one working column; grouped table that stacks into cards on phones */
+:root {
+  --bg: #f6f7f8;
+  --surface: #ffffff;
+  --ink: #1d2730;
+  --muted: #5b6874;
+  --line: #dde2e7;
+  --accent: #1f5f8b;
+  --accent-soft: #e5eef5;
+  --ok: #2f7a4f;
+  --ok-soft: #e4f2ea;
+  --warn: #9a5b12;
+  --warn-soft: #fbefdf;
+  --font-body: "Public Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12171c; --surface: #1a2128; --ink: #e6ebef; --muted: #9aa7b2; --line: #2c3640;
+    --accent: #7db6dc; --accent-soft: #1e3242; --ok: #7fd1a1; --ok-soft: #1c3327;
+    --warn: #e9b36c; --warn-soft: #3a2c19; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12171c; --surface: #1a2128; --ink: #e6ebef; --muted: #9aa7b2; --line: #2c3640;
+  --accent: #7db6dc; --accent-soft: #1e3242; --ok: #7fd1a1; --ok-soft: #1c3327;
+  --warn: #e9b36c; --warn-soft: #3a2c19; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body);
+  font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+  margin: 0;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 22px; }
+header { display: grid; gap: 6px; }
+h1 { font-size: 1.7rem; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.sub { color: var(--muted); margin: 0; max-width: 70ch; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.chip { font-size: 0.78rem; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; color: var(--muted); font-size: 0.9rem; }
+.toolbar label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.tablebox { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+thead th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; background: var(--surface); }
+tr.group th { background: var(--bg); font-size: 0.8rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink); padding-block: 9px; }
+tr.group th span { color: var(--muted); text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 6px; }
+.job { font-weight: 700; }
+.org { color: var(--muted); font-size: 0.88rem; }
+.desc { max-width: 52ch; }
+.desc p { margin: 0 0 6px; }
+.fit { margin: 0; font-size: 0.88rem; color: var(--ok); }
+.fit b { font-weight: 600; }
+.pay { font-family: var(--font-data); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 0.9rem; }
+.pay small { display: block; font-family: var(--font-body); color: var(--muted); font-size: 0.78rem; white-space: normal; }
+.when { font-size: 0.88rem; white-space: nowrap; }
+.when.soon { color: var(--warn); font-weight: 600; }
+.apply a { display: inline-block; padding: 6px 12px; border-radius: 6px; background: var(--accent); color: var(--surface); text-decoration: none; font-weight: 600; font-size: 0.86rem; white-space: nowrap; }
+.apply a:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.apply small { display: block; margin-top: 6px; color: var(--muted); font-size: 0.78rem; max-width: 22ch; overflow-wrap: anywhere; }
+.done { text-align: center; }
+.done input { width: 18px; height: 18px; accent-color: var(--ok); cursor: pointer; }
+tr.applied td { opacity: 0.55; }
+body.hide-applied tr.applied { display: none; }
+section.notes { display: grid; gap: 10px; }
+h2 { font-size: 1.05rem; margin: 0; }
+.notes ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; max-width: 80ch; }
+.notes li { color: var(--ink); }
+.notes li b { font-weight: 600; }
+@media (max-width: 760px) {
+  thead { display: none; }
+  table, tbody, tr, td, th { display: block; width: 100%; }
+  tr.row { border-bottom: 1px solid var(--line); padding: 10px 0; }
+  tr.row td { border: 0; padding: 4px 14px; }
+  tr.row td[data-label]::before { content: attr(data-label); display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
+  .done { text-align: left; }
+  .pay, .when { white-space: normal; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Brianna's Job Leads</h1>
+    <p class="sub">Full-time jobs in the Buffalo area paying $22/hr or more where you meet every posted minimum requirement, based on your resume: BA in Psychology (UB), about 4.5 years in child welfare, youth residential, care coordination and case management, Erie County residency, a NYS license and a car.</p>
+    <div class="meta">
+      <span class="chip">Checked Nov 5, 2026</span>
+      <span class="chip ok">15 jobs, all full-time</span>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <label><input type="checkbox" id="hide-applied"> Hide jobs marked applied</label>
+    <span>Tick "Applied" as you go; it is saved in this browser only.</span>
+  </div>
+
+  <div class="tablebox">
+    <table>
+      <thead>
+        <tr><th>Job</th><th>What it is · why you qualify</th><th>Pay</th><th>Deadline</th><th>Apply</th><th>Applied</th></tr>
+      </thead>
+      <tbody>
+        <tr class="group"><th colspan="6">Closest to your past work <span>child welfare, youth and families, protective services</span></th></tr>
+
+        <tr class="row" data-id="caseworker">
+          <td data-label="Job"><div class="job">Caseworker</div><div class="org">Erie County Dept. of Social Services</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Casework for child protective services, foster care, preventive services and adult protective services. Includes home visits, risk assessments and Family Court reports.</p><p class="fit"><b>Needs:</b> bachelor's + 1 year of casework, a NYS license and a car. You have a BA and a year as an Erie County CPS caseworker.</p></td>
+          <td data-label="Pay" class="pay">$53,934–$57,258/yr<small>≈ $26/hr or more. Temporary appointment.</small></td>
+          <td data-label="Deadline" class="when">Open until filled</td>
+          <td data-label="Apply" class="apply"><a href="https://www.governmentjobs.com/careers/erieco/jobs/5259657/caseworker" target="_blank" rel="noopener">Apply</a></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-caseworker" aria-label="Applied: Caseworker"></td>
+        </tr>
+
+        <tr class="row" data-id="miiwrap">
+          <td data-label="Job"><div class="job">Miiwrap Care Coordinator</div><div class="org">Child &amp; Family Services · hybrid</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Home-based care coordination for youth and families referred by Erie County DSS. You build plans of care and run monthly team meetings.</p><p class="fit"><b>Needs:</b> bachelor's + 1 year of direct work with at-risk youth and families. You have it from Hillside and CPS, and knowing CONNECTIONS is listed as a plus.</p></td>
+          <td data-label="Pay" class="pay">$48,000–$52,500/yr<small>≈ $23–25/hr or more</small></td>
+          <td data-label="Deadline" class="when">Posted Oct 22</td>
+          <td data-label="Apply" class="apply"><a href="https://recruiting.ultipro.com/CHI1024/JobBoard/fc2db33d-38be-deed-f072-cce806dbf68f/OpportunityDetail?opportunityId=c0324d80-ca60-46c6-9ba5-d8989dbedcc0" target="_blank" rel="noopener">Apply</a></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-miiwrap" aria-label="Applied: Miiwrap Care Coordinator"></td>
+        </tr>
+
+        <tr class="row" data-id="youthact">
+          <td data-label="Job"><div class="job">Clinical Support Provider, Youth ACT</div><div class="org">Child &amp; Family Services · Erie or Niagara team</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Skill-building with youth (ages 10–21) and families in homes, schools and the community, as part of an intensive mental health team. Flexible schedule with paid on-call rotation.</p><p class="fit"><b>Needs:</b> a bachelor's, a NYS license and transportation. You have all three, plus youth residential work at OLV.</p></td>
+          <td data-label="Pay" class="pay">$27.47–$31.32/hr<small>+ $200/week when on call</small></td>
+          <td data-label="Deadline" class="when">Posted Oct 29</td>
+          <td data-label="Apply" class="apply"><a href="https://recruiting.ultipro.com/CHI1024/JobBoard/fc2db33d-38be-deed-f072-cce806dbf68f/OpportunityDetail?opportunityId=62ce5bae-1f50-4e1a-9a9e-ae9013e5e633" target="_blank" rel="noopener">Apply</a></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-youthact" aria-label="Applied: Clinical Support Provider, Youth ACT"></td>
+        </tr>
+
+        <tr class="row" data-id="commons">
+          <td data-label="Job"><div class="job">School-Based Social Worker</div><div class="org">Buffalo Commons Charter School (K–8)</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Social-skills groups, restorative practices, parent involvement, and referrals to a behavioral health clinic. You'd be on the student support team.</p><p class="fit"><b>Needs:</b> a bachelor's in a related field. An MSW and 2 years of experience are preferred, not required. You meet it with your BA in psychology. They also want a cover letter.</p></td>
+          <td data-label="Pay" class="pay">$50,000–$55,000/yr<small>≈ $24–26/hr or more</small></td>
+          <td data-label="Deadline" class="when">Open on Indeed</td>
+          <td data-label="Apply" class="apply"><a href="https://www.indeed.com/viewjob?jk=b0a25b346c1e7091" target="_blank" rel="noopener">Apply</a></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-commons" aria-label="Applied: School-Based Social Worker"></td>
+        </tr>
+
+        <tr class="row" data-id="behavior">
+          <td data-label="Job"><div class="job">Behavior Specialist</div><div class="org">Child &amp; Family Services</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>In-home behavioral interventions and crisis support for youth and families, aimed at keeping kids at home. Mostly afternoons, evenings and weekends.</p><p class="fit"><b>Needs:</b> a bachelor's in psychology + 3 years in the field, a license and a car. You have about 4.5 years.</p></td>
+          <td data-label="Pay" class="pay">$47,000/yr<small>≈ $22.60/hr or more</small></td>
+          <td data-label="Deadline" class="when">Posted Oct 29</td>
+          <td data-label="Apply" class="apply"><a href="https://recruiting.ultipro.com/CHI1024/JobBoard/fc2db33d-38be-deed-f072-cce806dbf68f/OpportunityDetail?opportunityId=5b406751-e806-4a52-aee8-a62de89edc3c" target="_blank" rel="noopener">Apply</a></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-behavior" aria-label="Applied: Behavior Specialist"></td>
+        </tr>
+
+        <tr class="group"><th colspan="6">Crisis and domestic violence</th></tr>
+
+        <tr class="row" data-id="dvcm">
+          <td data-label="Job"><div class="job">Domestic Violence Case Manager</div><div class="org">Crisis Services</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Crisis intervention, case management and court accompaniment for domestic violence survivors. Mon–Fri, 40 hrs, some on-call.</p><p class="fit"><b>Needs:</b> a bachelor's in human services or a related field, 6 months of relevant work, a license and a car. Domestic violence experience is preferred, not required.</p></td>
+          <td data-label="Pay" class="pay">$22.04–$25.81/hr<small>Union (CWA)</small></td>
+          <td data-label="Deadline" class="when">Open now</td>
+          <td data-label="Apply" class="apply"><a href="https://www.paycomonline.net/v4/ats/web.php/portal/DDE5621A803B2101D30604139ED4E250/jobs/225667" target="_blank" rel="noopener">Apply</a></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-dvcm" aria-label="Applied: Domestic Violence Case Manager"></td>
+        </tr>
+
+        <tr class="row" data-id="dvadv">
+          <td data-label="Job"><div class="job">Domestic Violence Advocate</div><div class="org">Child &amp; Family Services (Haven House) · hybrid</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Outreach, safety planning and court advocacy for victims. You could be placed with police, the courts or CPS.</p><p class="fit"><b>Needs:</b> a BSW or equivalent education and experience, with 2+ years of paid professional work, plus a license and auto insurance. Your BA and 4.5 years of work meet the "equivalent" route.</p></td>
+          <td data-label="Pay" class="pay">$23.24/hr</td>
+          <td data-label="Deadline" class="when">Posted Nov 4</td>
+          <td data-label="Apply" class="apply"><a href="https://recruiting.ultipro.com/CHI1024/JobBoard/fc2db33d-38be-deed-f072-cce806dbf68f/OpportunityDetail?opportunityId=6451e801-0baa-48ba-a889-b3c85c4d2b64" target="_blank" rel="noopener">Apply</a></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-dvadv" aria-label="Applied: Domestic Violence Advocate"></td>
+        </tr>
+
+        <tr class="row" data-id="dvhot">
+          <td data-label="Job"><div class="job">Domestic Violence Hotline Advocate</div><div class="org">Child &amp; Family Services (Haven House)</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Answers the 24/7 hotline and chat, does safety planning, and is the contact for Erie County's High Risk Team. Mon–Fri 9–5, 35 hrs.</p><p class="fit"><b>Needs:</b> a bachelor's in social work or a related field, a license and a car. You meet it.</p></td>
+          <td data-label="Pay" class="pay">$22–$25/hr</td>
+          <td data-label="Deadline" class="when">Posted Nov 3</td>
+          <td data-label="Apply" class="apply"><a href="https://recruiting.ultipro.com/CHI1024/JobBoard/fc2db33d-38be-deed-f072-cce806dbf68f/OpportunityDetail?opportunityId=93c42334-d8af-4644-9b16-15d64cf8f342" target="_blank" rel="noopener">Apply</a></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-dvhot" aria-label="Applied: Domestic Violence Hotline Advocate"></td>
+        </tr>
+
+        <tr class="row" data-id="outreach">
+          <td data-label="Job"><div class="job">Mobile Outreach Intake Worker</div><div class="org">Crisis Services</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Intake and phone follow-up for the emergency mental health outreach team, focused on suicide prevention and keeping people out of the hospital. Four 10-hour days, Wed–Sat 11–9.</p><p class="fit"><b>Needs:</b> a human services degree + 1 year in a mental health or human service setting. You meet it.</p></td>
+          <td data-label="Pay" class="pay">$22.04–$25.81/hr</td>
+          <td data-label="Deadline" class="when">Open now</td>
+          <td data-label="Apply" class="apply"><a href="https://www.paycomonline.net/v4/ats/web.php/portal/DDE5621A803B2101D30604139ED4E250/jobs/224838" target="_blank" rel="noopener">Apply</a></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-outreach" aria-label="Applied: Mobile Outreach Intake Worker"></td>
+        </tr>
+
+        <tr class="row" data-id="lifeline">
+          <td data-label="Job"><div class="job">988 Lifeline Crisis Counseling Specialist I</div><div class="org">Crisis Services</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Answers 988 suicide and crisis calls on-site in Buffalo. Day, evening (+$3/hr) or weekend shifts.</p><p class="fit"><b>Needs:</b> a bachelor's (preferred) and knowledge of mental health and crisis work. You have crisis intervention experience from OLV and CPS.</p></td>
+          <td data-label="Pay" class="pay">$22.04–$25.81/hr<small>+ shift differentials</small></td>
+          <td data-label="Deadline" class="when">Open now</td>
+          <td data-label="Apply" class="apply"><a href="https://www.paycomonline.net/v4/ats/web.php/portal/DDE5621A803B2101D30604139ED4E250/jobs/204020" target="_blank" rel="noopener">Apply</a></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-lifeline" aria-label="Applied: 988 Lifeline Crisis Counseling Specialist"></td>
+        </tr>
+
+        <tr class="group"><th colspan="6">State and county jobs <span>NY HELPS jobs need no exam and become permanent after a year</span></th></tr>
+
+        <tr class="row" data-id="ydw">
+          <td data-label="Job"><div class="job">Youth Detention Worker (NY HELPS)</div><div class="org">Erie County Youth Services · 810 E Ferry St</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Supervises and mentors youth at the secure detention center, runs daily activities and writes daily reports. On-site only.</p><p class="fit"><b>Needs:</b> a bachelor's (or HS + 2 years with youth) and Erie County residency. You meet both.</p></td>
+          <td data-label="Pay" class="pay">$46,989/yr<small>≈ $22.60/hr or more</small></td>
+          <td data-label="Deadline" class="when">Open until filled</td>
+          <td data-label="Apply" class="apply"><a href="https://www.governmentjobs.com/careers/erieco/jobs/5501520/youth-detention-worker-ny-helps" target="_blank" rel="noopener">Apply</a><small>Attach transcripts</small></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-ydw" aria-label="Applied: Youth Detention Worker"></td>
+        </tr>
+
+        <tr class="row" data-id="mhta">
+          <td data-label="Job"><div class="job">Mental Health Therapy Aide (NY HELPS)</div><div class="org">NYS OMH · WNY Children's Psychiatric Center, West Seneca</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Direct care for kids in psychiatric treatment, including safety, life skills, crisis support and documentation. Permanent. Evening shift, 3–11:30 PM with weekends, and mandatory overtime.</p><p class="fit"><b>Needs:</b> a high school diploma. Your youth residential work at OLV is directly relevant.</p></td>
+          <td data-label="Pay" class="pay">$54,396/yr<small>≈ $26.15/hr at 40 hrs</small></td>
+          <td data-label="Deadline" class="when soon">Due Nov 16</td>
+          <td data-label="Apply" class="apply"><a href="https://statejobs.ny.gov/public/vacancyDetailsView.cfm?id=227305" target="_blank" rel="noopener">Posting</a><small>Email the OMH application + resume to wnycpc-careers@omh.ny.gov</small></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-mhta" aria-label="Applied: Mental Health Therapy Aide"></td>
+        </tr>
+
+        <tr class="row" data-id="dsa">
+          <td data-label="Job"><div class="job">Direct Support Assistant (NY HELPS)</div><div class="org">NYS OPWDD · Erie County homes</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Supports adults with developmental disabilities with daily living, community activities and care plans. Permanent. Variable shifts with mandatory overtime.</p><p class="fit"><b>Needs:</b> a high school diploma, a NYS license and the physical standards. Your Person Centered Services work was with this population.</p></td>
+          <td data-label="Pay" class="pay">$54,396/yr<small>≈ $26.15/hr at 40 hrs</small></td>
+          <td data-label="Deadline" class="when">Due Jan 15, 2027</td>
+          <td data-label="Apply" class="apply"><a href="https://statejobs.ny.gov/public/vacancyDetailsView.cfm?id=226630" target="_blank" rel="noopener">Posting</a><small>Email resume to WesternNY.Careers@opwdd.ny.gov with vacancy ID 226630</small></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-dsa" aria-label="Applied: Direct Support Assistant"></td>
+        </tr>
+
+        <tr class="row" data-id="swe">
+          <td data-label="Job"><div class="job">Social Welfare Examiner</div><div class="org">Erie County Dept. of Social Services</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Interviews applicants and decides eligibility for SNAP, Medicaid, day care and other assistance. Mostly desk work. Temporary appointment.</p><p class="fit"><b>Needs:</b> 60 college credits and Erie County residency. You meet both.</p></td>
+          <td data-label="Pay" class="pay">$48,027/yr<small>≈ $23/hr or more</small></td>
+          <td data-label="Deadline" class="when soon">Closes Nov 8</td>
+          <td data-label="Apply" class="apply"><a href="https://www.governmentjobs.com/careers/erieco/jobs/5535627/social-welfare-examiner" target="_blank" rel="noopener">Apply</a><small>Attach transcripts</small></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-swe" aria-label="Applied: Social Welfare Examiner"></td>
+        </tr>
+
+        <tr class="group"><th colspan="6">Housing and adult services</th></tr>
+
+        <tr class="row" data-id="belmont">
+          <td data-label="Job"><div class="job">Resident Services Coordinator</div><div class="org">Belmont Housing Resources for WNY</div></td>
+          <td data-label="What it is · why you qualify" class="desc"><p>Connects seniors and adults with disabilities in affordable housing to services such as home care, meals and benefits, and advocates for them.</p><p class="fit"><b>Needs:</b> a related BA + 4 years of social service work with assessments and referrals (an MSW is preferred). You have about 4.5 years, so you just meet it.</p></td>
+          <td data-label="Pay" class="pay">$47,000–$57,000/yr<small>≈ $22.60–27.40/hr or more</small></td>
+          <td data-label="Deadline" class="when">New on Indeed</td>
+          <td data-label="Apply" class="apply"><a href="https://www.belmonthousingwny.org/join-our-team/" target="_blank" rel="noopener">Apply</a></td>
+          <td data-label="Applied" class="done"><input type="checkbox" id="ap-belmont" aria-label="Applied: Resident Services Coordinator"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section class="notes">
+    <h2>Checked but not included</h2>
+    <ul>
+      <li><b>Funeral homes and cemeteries:</b> every full-time Buffalo opening (Dignity Memorial, Newcomer, Erie Niagara Funeral Directors Association board) requires a NYS funeral director license. Your 3 months shadowing at Amigone doesn't replace it. Forest Lawn has no openings. Erie County's Autopsy Technician job closed in July. It's posted periodically, but it asks for a natural-science or similar degree.</li>
+      <li><b>Animal welfare:</b> the SPCA's new Community Engagement Specialist is full-time but pays $20/hr. Its Peace Officer job requires a license. ASPCA, Humane World and Best Friends have nothing local or remote that fits.</li>
+      <li><b>Adult protective services:</b> in Erie County, APS is staffed through the Caseworker title above, so that posting covers it.</li>
+      <li><b>Say Yes Buffalo and Vibrant (remote 988):</b> no openings right now.</li>
+      <li><b>Left out on purpose:</b> anything part-time and anything under $22/hr.</li>
+    </ul>
+    <p class="sub">Hourly figures for salaried jobs are calculated at 40 hours a week, so they're the lowest the job could work out to. Pay and openings change; check each posting before applying.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  var KEY = "bri-job-leads-applied";
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { saved = {}; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {} }
+  document.querySelectorAll("tr.row").forEach(function (row) {
+    var id = row.getAttribute("data-id");
+    var box = row.querySelector(".done input");
+    if (!box) return;
+    box.checked = !!saved[id];
+    row.classList.toggle("applied", box.checked);
+    box.addEventListener("change", function () {
+      saved[id] = box.checked;
+      row.classList.toggle("applied", box.checked);
+      save();
+    });
+  });
+  var hide = document.getElementById("hide-applied");
+  try { hide.checked = localStorage.getItem(KEY + "-hide") === "1"; } catch (e) {}
+  document.body.classList.toggle("hide-applied", hide.checked);
+  hide.addEventListener("change", function () {
+    document.body.classList.toggle("hide-applied", hide.checked);
+    try { localStorage.setItem(KEY + "-hide", hide.checked ? "1" : "0"); } catch (e) {}
+  });
+})();
+</script>
+
+</html>

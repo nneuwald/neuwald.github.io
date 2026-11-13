@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Horror Wheel</title>
+<style>
+  :root {
+    --bg: #0d0b0c;
+    --panel: #171314;
+    --line: #2c2426;
+    --bone: #ece4d8;
+    --dim: #8f8580;
+    --blood: #b3141c;
+    --blood-dark: #6d0b10;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: radial-gradient(ellipse at 30% 0%, #1d1214 0%, var(--bg) 60%);
+    background-attachment: fixed;
+    color: var(--bone);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+  }
+  header { text-align: center; padding: 28px 16px 8px; }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0;
+    color: var(--bone);
+    text-shadow: 0 0 24px rgba(179, 20, 28, 0.55);
+  }
+  header p { color: var(--dim); margin: 8px 0 0; font-size: 0.95rem; }
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 20px 60px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+  .wheel-col { position: sticky; top: 16px; text-align: center; }
+  @media (max-width: 900px) { .wheel-col { position: static; } }
+  .wheel-wrap { position: relative; width: min(100%, 540px); margin: 0 auto; aspect-ratio: 1; }
+  canvas { width: 100%; height: 100%; display: block; }
+  .pointer {
+    position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 16px solid transparent; border-right: 16px solid transparent;
+    border-top: 34px solid var(--bone);
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,0.7));
+    z-index: 2;
+  }
+  button {
+    font: inherit; cursor: pointer; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--bone);
+    padding: 8px 14px;
+  }
+  button:hover { border-color: var(--dim); }
+  button:focus-visible, .film:focus-visible { outline: 2px solid var(--bone); outline-offset: 2px; }
+  #spin {
+    margin-top: 18px; font-size: 1.25rem; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 14px 48px; background: var(--blood); border-color: var(--blood); font-weight: 700;
+  }
+  #spin:hover { background: #cc1821; }
+  #spin:disabled { opacity: 0.45; cursor: not-allowed; }
+  .count { color: var(--dim); margin-top: 12px; font-size: 0.95rem; }
+
+  .result {
+    margin: 18px auto 0; max-width: 540px; text-align: left;
+    background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--blood);
+    border-radius: 8px; padding: 16px 18px; display: none;
+  }
+  .result.show { display: block; }
+  .result .label { color: var(--dim); font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase; }
+  .result h2 { font-family: Georgia, serif; margin: 6px 0 2px; font-size: 1.6rem; }
+  .result .meta { color: var(--dim); font-size: 0.9rem; }
+  .result p { margin: 10px 0 14px; line-height: 1.45; }
+  .result .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .result .primary { background: var(--blood); border-color: var(--blood); }
+
+  .list-col h3 {
+    font-family: Georgia, serif; font-size: 0.85rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--blood); margin: 22px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 6px;
+  }
+  .list-col h3:first-of-type { margin-top: 0; }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; align-items: center; }
+  .toolbar button { font-size: 0.85rem; }
+  .toolbar .note { color: var(--dim); font-size: 0.8rem; flex-basis: 100%; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  .film {
+    display: grid; grid-template-columns: 22px 30px 1fr; gap: 8px; align-items: baseline;
+    padding: 7px 8px; border-radius: 6px; cursor: pointer; user-select: none;
+  }
+  .film:hover { background: var(--panel); }
+  .film .box {
+    width: 16px; height: 16px; border: 1.5px solid var(--dim); border-radius: 3px;
+    align-self: center; position: relative;
+  }
+  .film .num { color: var(--dim); font-variant-numeric: tabular-nums; font-size: 0.85rem; text-align: right; }
+  .film .title { font-weight: 600; }
+  .film .meta { color: var(--dim); font-size: 0.85rem; }
+  .film .desc { display: block; color: var(--dim); font-size: 0.85rem; line-height: 1.35; margin-top: 1px; }
+  .film.watched .box { background: var(--blood); border-color: var(--blood); }
+  .film.watched .box::after {
+    content: ""; position: absolute; left: 4px; top: 0px; width: 4px; height: 9px;
+    border: solid var(--bone); border-width: 0 2px 2px 0; transform: rotate(45deg);
+  }
+  .film.watched .title { text-decoration: line-through; text-decoration-color: var(--blood); text-decoration-thickness: 2px; }
+  .film.watched .title, .film.watched .meta, .film.watched .desc, .film.watched .num { opacity: 0.45; }
+  .film.winner { background: rgba(179, 20, 28, 0.18); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Horror Wheel</h1>
+  <p>50 obscure, well-reviewed, English-language horror films. Spin to pick tonight's movie.</p>
+</header>
+
+<main>
+  <section class="wheel-col">
+    <div class="wheel-wrap">
+      <div class="pointer" aria-hidden="true"></div>
+      <canvas id="wheel" width="1080" height="1080" aria-label="Spinning wheel of unwatched films"></canvas>
+    </div>
+    <button id="spin">Spin</button>
+    <div class="count" id="count"></div>
+
+    <div class="result" id="result" aria-live="polite">
+      <div class="label">Tonight's pick</div>
+      <h2 id="r-title"></h2>
+      <div class="meta" id="r-meta"></div>
+      <p id="r-desc"></p>
+      <div class="actions">
+        <button class="primary" id="r-watched">Mark as watched</button>
+        <button id="r-again">Spin again</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="list-col">
+    <div class="toolbar">
+      <button id="sync">Copy sync link</button>
+      <button id="reset">Reset all</button>
+      <span class="note">Click a film to cross it off. Crossed-off films leave the wheel. Progress is saved in this browser; use the sync link to carry it to another device.</span>
+    </div>
+    <div id="list"></div>
+  </section>
+</main>
+
+<script>
+const ERAS = ["Pre-1970", "1970s to 1990s", "2000s", "2010s", "2020s"];
+const FILMS = [
+  [1, "The Seventh Victim", "1943, US", "Satanic cult noir, decades ahead of its time", 0],
+  [2, "Dead of Night", "1945, UK", "Anthology with the definitive ventriloquist dummy segment", 0],
+  [3, "Night of the Demon", "1957, UK", "A skeptic versus a cursed parchment", 0],
+  [4, "The City of the Dead", "1960, UK", "A fog-drenched New England witch town", 0],
+  [5, "The Queen of Spades", "1949, UK", "An officer bargains for a countess's supernatural secret to winning at cards", 0],
+  [6, "Night of the Eagle", "1962, UK", "A professor discovers his wife practices witchcraft", 0],
+  [7, "Spider Baby", "1967, US", "A darkly funny tale of a degenerate family", 0],
+  [8, "Whistle and I'll Come to You", "1968, UK", "A 42-minute BBC ghost story", 0],
+  [9, "Let's Scare Jessica to Death", "1971, US", "Is she relapsing or being haunted?", 1],
+  [10, "The Blood on Satan's Claw", "1971, UK", "Village children turn to devil worship", 1],
+  [11, "Images", "1972, UK/US", "Robert Altman's hallucinatory breakdown film", 1],
+  [12, "The Stone Tape", "1972, UK", "Scientists try to record a haunting", 1],
+  [13, "Messiah of Evil", "1973, US", "A surreal coastal town of the undead", 1],
+  [14, "Ganja & Hess", "1973, US", "Experimental vampire film about addiction", 1],
+  [15, "Deathdream", "1974, US", "A soldier comes home from Vietnam wrong", 1],
+  [16, "God Told Me To", "1976, US", "Random killers all give the same reason", 1],
+  [17, "Martin", "1977, US", "George Romero's sad, ambiguous vampire film", 1],
+  [18, "Long Weekend", "1978, Australia", "Nature turns on a bickering couple", 1],
+  [19, "Pin", "1988, Canada", "A brother's attachment to a medical dummy turns dangerous", 1],
+  [20, "Dead & Buried", "1981, US", "A small town where murder victims come back", 1],
+  [21, "Next of Kin", "1982, Australia", "A stylish slow burn in a retirement home", 1],
+  [22, "Paperhouse", "1988, UK", "A girl's drawings become a frightening dream world", 1],
+  [23, "Santa Sangre", "1989, Mexico/Italy", "A circus childhood, an armless mother, and murder (filmed in English)", 1],
+  [24, "The Reflecting Skin", "1990, UK/Canada", "Prairie gothic through a child's eyes", 1],
+  [25, "Ghostwatch", "1992, UK", "The BBC mock-live broadcast that panicked viewers", 1],
+  [26, "The Addiction", "1995, US", "A philosophy student becomes a vampire in black-and-white New York", 1],
+  [27, "Ravenous", "1999, US/UK", "Frontier cannibalism with a streak of dark comedy", 1],
+  [28, "Session 9", "2001, US", "An asbestos crew in an abandoned asylum", 2],
+  [29, "Frailty", "2001, US", "A father believes God has told him to kill demons", 2],
+  [30, "May", "2002, US", "A lonely misfit decides to build herself a friend", 2],
+  [31, "Bug", "2006, US", "Two lonely people spiral into shared paranoia in a motel room", 2],
+  [32, "Pontypool", "2008, Canada", "A virus spreads through language, set in a radio booth", 2],
+  [33, "Triangle", "2009, UK/Australia", "A time loop on an abandoned ocean liner", 2],
+  [34, "The Loved Ones", "2009, Australia", "A rejected prom date takes revenge", 2],
+  [35, "Kill List", "2011, UK", "A hitman drama that curdles into folk horror", 3],
+  [36, "Absentia", "2011, US", "Mike Flanagan's microbudget debut about a sinister tunnel", 3],
+  [37, "Resolution", "2012, US", "A forced detox in a cabin while something watches", 3],
+  [38, "The Borderlands", "2013, UK", "Vatican investigators and a brutal ending", 3],
+  [39, "Starry Eyes", "2014, US", "An actress pays a horrific price for fame", 3],
+  [40, "The Canal", "2014, Ireland", "A film archivist finds his house in old murder footage", 3],
+  [41, "Savageland", "2015, US", "A mockumentary about a border town wiped out overnight, pieced together from one roll of film", 3],
+  [42, "The Endless", "2017, US", "Two brothers return to the cult they escaped (watch Resolution first)", 3],
+  [43, "A Dark Song", "2016, Ireland", "A months-long occult ritual, taken seriously", 3],
+  [44, "The Wind", "2018, US", "A frontier wife alone on the prairie with something outside", 3],
+  [45, "In Fabric", "2018, UK", "A cursed dress, played strange and funny", 3],
+  [46, "Sator", "2019, US", "A nearly one-man production about a family and the forest entity that speaks to them", 4],
+  [47, "The Harbinger", "2022, US", "A pandemic-era dream demon that erases its victims from everyone's memory", 4],
+  [48, "You Are Not My Mother", "2021, Ireland", "A missing mother comes back changed, drawing on changeling folklore", 4],
+  [49, "Censor", "2021, UK", "A 1980s film censor loses her grip on reality", 4],
+  [50, "Birth/Rebirth", "2023, US", "A pathologist and a grieving nurse reanimate a dead child", 4]
+].map(function (f) { return { n: f[0], title: f[1], meta: f[2], desc: f[3], era: f[4] }; });
+
+const KEY = "horrorWheel.watched.v1";
+let watched = new Set();
+let mem = [];
+
+function load() {
+  let ids = [];
+  try { ids = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { ids = mem; }
+  watched = new Set(ids.filter(function (n) { return n >= 1 && n <= FILMS.length; }));
+  // Merge in any state carried by a sync link (#w=<base36 bitmask>)
+  const m = location.hash.match(/w=([0-9a-z]+)/i);
+  if (m) {
+    try {
+      let bits = BigInt(0);
+      for (const ch of m[1].toLowerCase()) bits = bits * 36n + BigInt(parseInt(ch, 36));
+      FILMS.forEach(function (f) { if ((bits >> BigInt(f.n - 1)) & 1n) watched.add(f.n); });
+      save();
+    } catch (e) {}
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+}
+function save() {
+  mem = Array.from(watched);
+  try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch (e) {}
+}
+function syncLink() {
+  let bits = 0n;
+  watched.forEach(function (n) { bits |= 1n << BigInt(n - 1); });
+  return location.origin + location.pathname + "#w=" + bits.toString(36);
+}
+function remaining() { return FILMS.filter(function (f) { return !watched.has(f.n); }); }
+
+/* ---------- wheel ---------- */
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+const COLORS = ["#8f1017", "#1b1617", "#5a0a0e", "#2a2123"];
+let rot = 0;
+let spinning = false;
+let current = null;
+
+function draw() {
+  const items = remaining();
+  const W = canvas.width, c = W / 2, R = c - 14;
+  ctx.clearRect(0, 0, W, W);
+  ctx.save();
+  ctx.translate(c, c);
+
+  if (!items.length) {
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2);
+    ctx.fillStyle = "#1b1617"; ctx.fill();
+    ctx.fillStyle = "#ece4d8"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = "bold 54px Georgia, serif";
+    ctx.fillText("All watched.", 0, -20);
+    ctx.font = "32px Georgia, serif"; ctx.fillStyle = "#8f8580";
+    ctx.fillText("Nothing left to fear.", 0, 40);
+    ctx.restore();
+    return;
+  }
+
+  const a = (Math.PI * 2) / items.length;
+  ctx.rotate(rot);
+  items.forEach(function (f, i) {
+    // Avoid two identical neighbours where the wheel wraps around
+    let ci = i % COLORS.length;
+    if (i === items.length - 1 && ci === 0 && items.length > 1) ci = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, R, i * a, (i + 1) * a);
+    ctx.closePath();
+    ctx.fillStyle = COLORS[ci];
+    ctx.fill();
+    ctx.strokeStyle = "#0d0b0c"; ctx.lineWidth = 2; ctx.stroke();
+
+    ctx.save();
+    ctx.rotate((i + 0.5) * a);
+    ctx.fillStyle = "#ece4d8";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "right";
+    if (items.length <= 16) {
+      const size = items.length <= 8 ? 34 : 26;
+      ctx.font = "600 " + size + "px -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
+      let t = f.title;
+      const max = R - 110;
+      while (ctx.measureText(t).width > max && t.length > 4) t = t.slice(0, -2);
+      if (t !== f.title) t = t.replace(/\s+$/, "") + "…";
+      ctx.fillText(t, R - 24, 0);
+    } else {
+      const size = items.length > 36 ? 26 : 32;
+      ctx.font = "700 " + size + "px Georgia, serif";
+      ctx.fillText(String(f.n), R - 22, 0);
+    }
+    ctx.restore();
+  });
+  ctx.restore();
+
+  // rim and hub
+  ctx.save();
+  ctx.translate(c, c);
+  ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2);
+  ctx.strokeStyle = "#ece4d8"; ctx.lineWidth = 8; ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, 58, 0, Math.PI * 2);
+  ctx.fillStyle = "#0d0b0c"; ctx.fill();
+  ctx.strokeStyle = "#ece4d8"; ctx.lineWidth = 5; ctx.stroke();
+  ctx.restore();
+}
+
+function spin() {
+  const items = remaining();
+  if (spinning || !items.length) return;
+  spinning = true;
+  setWinner(null);
+  document.getElementById("result").classList.remove("show");
+  updateUI();
+
+  const i = Math.floor(Math.random() * items.length);
+  const a = (Math.PI * 2) / items.length;
+  const jitter = (Math.random() - 0.5) * 0.7;
+  const TAU = Math.PI * 2;
+  const target = -Math.PI / 2 - (i + 0.5 + jitter) * a;
+  const delta = (((target - rot) % TAU) + TAU) % TAU + TAU * 6;
+  const start = rot;
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const dur = reduce ? 600 : 5200;
+  const t0 = performance.now();
+
+  function frame(now) {
+    const p = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - p, 4);
+    rot = start + delta * e;
+    draw();
+    if (p < 1) { requestAnimationFrame(frame); return; }
+    rot = rot % TAU;
+    spinning = false;
+    setWinner(items[i]);
+    updateUI();
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- result + list ---------- */
+function setWinner(f) {
+  current = f;
+  document.querySelectorAll(".film.winner").forEach(function (el) { el.classList.remove("winner"); });
+  const box = document.getElementById("result");
+  if (!f) return;
+  document.getElementById("r-title").textContent = f.title;
+  document.getElementById("r-meta").textContent = "#" + f.n + " · " + f.meta;
+  document.getElementById("r-desc").textContent = f.desc;
+  box.classList.add("show");
+  const row = document.querySelector('.film[data-n="' + f.n + '"]');
+  if (row) row.classList.add("winner");
+}
+
+function toggle(n) {
+  if (spinning) return;
+  if (watched.has(n)) watched.delete(n); else watched.add(n);
+  save();
+  if (current && current.n === n && watched.has(n)) {
+    document.getElementById("result").classList.remove("show");
+    setWinner(null);
+  }
+  updateUI();
+  draw();
+}
+
+function buildList() {
+  const root = document.getElementById("list");
+  ERAS.forEach(function (era, ei) {
+    const h = document.createElement("h3"); h.textContent = era; root.appendChild(h);
+    const ul = document.createElement("ul");
+    FILMS.filter(function (f) { return f.era === ei; }).forEach(function (f) {
+      const li = document.createElement("li");
+      li.className = "film"; li.dataset.n = f.n; li.tabIndex = 0;
+      li.setAttribute("role", "checkbox");
+      const box = document.createElement("span"); box.className = "box";
+      const num = document.createElement("span"); num.className = "num"; num.textContent = f.n + ".";
+      const body = document.createElement("span");
+      const t = document.createElement("span"); t.className = "title"; t.textContent = f.title;
+      const m = document.createElement("span"); m.className = "meta"; m.textContent = " (" + f.meta + ")";
+      const d = document.createElement("span"); d.className = "desc"; d.textContent = f.desc;
+      body.append(t, m, d);
+      li.append(box, num, body);
+      li.addEventListener("click", function () { toggle(f.n); });
+      li.addEventListener("keydown", function (ev) {
+        if (ev.key === " " || ev.key === "Enter") { ev.preventDefault(); toggle(f.n); }
+      });
+      ul.appendChild(li);
+    });
+    root.appendChild(ul);
+  });
+}
+
+function updateUI() {
+  document.querySelectorAll(".film").forEach(function (el) {
+    const w = watched.has(Number(el.dataset.n));
+    el.classList.toggle("watched", w);
+    el.setAttribute("aria-checked", w ? "true" : "false");
+  });
+  const left = remaining().length;
+  document.getElementById("count").textContent =
+    left + " of " + FILMS.length + " left to watch";
+  document.getElementById("spin").disabled = spinning || left === 0;
+}
+
+document.getElementById("spin").addEventListener("click", spin);
+document.getElementById("r-again").addEventListener("click", spin);
+document.getElementById("r-watched").addEventListener("click", function () {
+  if (current) toggle(current.n);
+});
+
+const syncBtn = document.getElementById("sync");
+syncBtn.addEventListener("click", function () {
+  const url = syncLink();
+  const done = function () {
+    syncBtn.textContent = "Link copied";
+    setTimeout(function () { syncBtn.textContent = "Copy sync link"; }, 1800);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done, function () { location.hash = url.split("#")[1]; });
+  } else {
+    location.hash = url.split("#")[1];
+  }
+});
+
+const resetBtn = document.getElementById("reset");
+let armed = null;
+resetBtn.addEventListener("click", function () {
+  if (!armed) {
+    resetBtn.textContent = "Click again to confirm";
+    armed = setTimeout(function () { armed = null; resetBtn.textContent = "Reset all"; }, 3000);
+    return;
+  }
+  clearTimeout(armed); armed = null; resetBtn.textContent = "Reset all";
+  watched.clear(); save();
+  document.getElementById("result").classList.remove("show");
+  setWinner(null); updateUI(); draw();
+});
+
+load();
+buildList();
+updateUI();
+draw();
+</script>
+</body>
+</html>

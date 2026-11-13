@@ -115,6 +115,30 @@
   .film.watched .title { text-decoration: line-through; text-decoration-color: var(--blood); text-decoration-thickness: 2px; }
   .film.watched .title, .film.watched .meta, .film.watched .desc, .film.watched .num { opacity: 0.45; }
   .film.winner { background: rgba(179, 20, 28, 0.18); }
+
+  .ratings { display: none; flex-wrap: wrap; gap: 4px 18px; margin-top: 6px; }
+  .film.watched .ratings { display: flex; }
+  .rater { display: inline-flex; align-items: center; gap: 4px; }
+  .rater .who { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; width: 34px; }
+  .rater.bri { --frost: #ff6fb5; }
+  .rater.nick { --frost: #ffd23f; }
+  .rater .who { color: var(--frost); }
+  .donut {
+    width: 20px; height: 20px; padding: 0; border-radius: 50%;
+    border: 2px solid #4a3f3c; background: transparent; position: relative;
+  }
+  .donut::after {
+    content: ""; position: absolute; inset: 5px; border-radius: 50%;
+    border: 1.5px solid #4a3f3c;
+  }
+  .donut:hover { border-color: var(--frost); }
+  .donut.on {
+    border-color: #c58a52;
+    background: radial-gradient(circle, transparent 0 26%, var(--frost) 30%);
+  }
+  .donut.on::after { border-color: #c58a52; }
+  .avg { color: var(--dim); margin-top: 6px; font-size: 0.9rem; }
+  .avg .b { color: #ff6fb5; } .avg .n { color: #ffd23f; }
 </style>
 </head>
 <body>
@@ -131,6 +155,7 @@
     </div>
     <button id="spin">Spin</button>
     <div class="count" id="count"></div>
+    <div class="avg" id="avg"></div>
 
     <div class="result" id="result" aria-live="polite">
       <div class="label">Tonight's pick</div>
@@ -148,7 +173,7 @@
     <div class="toolbar">
       <button id="sync">Copy sync link</button>
       <button id="reset">Reset all</button>
-      <span class="note">Click a film to cross it off. Crossed-off films leave the wheel. Progress is saved in this browser; use the sync link to carry it to another device.</span>
+      <span class="note">Click a film to cross it off. Crossed-off films leave the wheel and can be rated 1 to 5 donuts (5 is best) by Bri in pink and Nick in yellow. Click a donut again to clear it. Progress and ratings are saved in this browser; use the sync link to carry them to another device.</span>
     </div>
     <div id="list"></div>
   </section>
@@ -210,13 +235,38 @@ const FILMS = [
 ].map(function (f) { return { n: f[0], title: f[1], meta: f[2], desc: f[3], era: f[4] }; });
 
 const KEY = "horrorWheel.watched.v1";
+const RKEY = "horrorWheel.ratings.v1";
+const RATERS = [["Bri", "bri"], ["Nick", "nick"]];
 let watched = new Set();
+let ratings = {};   // film number -> [bri, nick], 0 means unrated
 let mem = [];
+
+function getR(n) { return ratings[n] || [0, 0]; }
+function setR(n, who, v) {
+  const r = getR(n).slice();
+  r[who] = r[who] === v ? 0 : v;
+  ratings[n] = r;
+  save();
+  updateUI();
+}
 
 function load() {
   let ids = [];
   try { ids = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { ids = mem; }
   watched = new Set(ids.filter(function (n) { return n >= 1 && n <= FILMS.length; }));
+  try { ratings = JSON.parse(localStorage.getItem(RKEY) || "{}") || {}; } catch (e) {}
+  // Ratings carried by a sync link (r=<one base36 char per film: bri*6+nick>)
+  const rm = location.hash.match(/r=([0-9a-z]+)/i);
+  if (rm && rm[1].length === FILMS.length) {
+    FILMS.forEach(function (f, i) {
+      const v = parseInt(rm[1][i], 36);
+      const inc = [Math.floor(v / 6), v % 6];
+      const cur = getR(f.n).slice();
+      if (inc[0] >= 1 && inc[0] <= 5) cur[0] = inc[0];
+      if (inc[1] >= 1 && inc[1] <= 5) cur[1] = inc[1];
+      if (cur[0] || cur[1]) ratings[f.n] = cur;
+    });
+  }
   // Merge in any state carried by a sync link (#w=<base36 bitmask>)
   const m = location.hash.match(/w=([0-9a-z]+)/i);
   if (m) {
@@ -226,17 +276,24 @@ function load() {
       FILMS.forEach(function (f) { if ((bits >> BigInt(f.n - 1)) & 1n) watched.add(f.n); });
       save();
     } catch (e) {}
+  }
+  if (m || rm) {
+    save();
     history.replaceState(null, "", location.pathname + location.search);
   }
 }
 function save() {
   mem = Array.from(watched);
-  try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch (e) {}
+  try {
+    localStorage.setItem(KEY, JSON.stringify(mem));
+    localStorage.setItem(RKEY, JSON.stringify(ratings));
+  } catch (e) {}
 }
 function syncLink() {
   let bits = 0n;
   watched.forEach(function (n) { bits |= 1n << BigInt(n - 1); });
-  return location.origin + location.pathname + "#w=" + bits.toString(36);
+  const r = FILMS.map(function (f) { const x = getR(f.n); return (x[0] * 6 + x[1]).toString(36); }).join("");
+  return location.origin + location.pathname + "#w=" + bits.toString(36) + "&r=" + r;
 }
 function remaining() { return FILMS.filter(function (f) { return !watched.has(f.n); }); }
 
@@ -388,7 +445,23 @@ function buildList() {
       const t = document.createElement("span"); t.className = "title"; t.textContent = f.title;
       const m = document.createElement("span"); m.className = "meta"; m.textContent = " (" + f.meta + ")";
       const d = document.createElement("span"); d.className = "desc"; d.textContent = f.desc;
-      body.append(t, m, d);
+      const rt = document.createElement("span"); rt.className = "ratings";
+      RATERS.forEach(function (p, who) {
+        const g = document.createElement("span"); g.className = "rater " + p[1];
+        const lab = document.createElement("span"); lab.className = "who"; lab.textContent = p[0];
+        g.appendChild(lab);
+        for (let v = 1; v <= 5; v++) {
+          const b = document.createElement("button");
+          b.type = "button"; b.className = "donut"; b.dataset.who = who; b.dataset.v = v;
+          b.setAttribute("aria-label", p[0] + ": " + v + (v === 1 ? " donut" : " donuts"));
+          b.addEventListener("click", function (ev) { ev.stopPropagation(); setR(f.n, who, v); });
+          g.appendChild(b);
+        }
+        rt.appendChild(g);
+      });
+      rt.addEventListener("click", function (ev) { ev.stopPropagation(); });
+      rt.addEventListener("keydown", function (ev) { ev.stopPropagation(); });
+      body.append(t, m, d, rt);
       li.append(box, num, body);
       li.addEventListener("click", function () { toggle(f.n); });
       li.addEventListener("keydown", function (ev) {
@@ -405,6 +478,25 @@ function updateUI() {
     const w = watched.has(Number(el.dataset.n));
     el.classList.toggle("watched", w);
     el.setAttribute("aria-checked", w ? "true" : "false");
+    const r = getR(Number(el.dataset.n));
+    el.querySelectorAll(".donut").forEach(function (b) {
+      const on = Number(b.dataset.v) <= r[Number(b.dataset.who)];
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  });
+  const avgEl = document.getElementById("avg");
+  avgEl.textContent = "";
+  RATERS.forEach(function (p, who) {
+    const vals = FILMS.filter(function (f) { return watched.has(f.n); })
+      .map(function (f) { return getR(f.n)[who]; }).filter(Boolean);
+    if (!vals.length) return;
+    const span = document.createElement("span");
+    span.className = who === 0 ? "b" : "n";
+    const mean = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+    span.textContent = p[0] + " avg " + mean.toFixed(1) + " (" + vals.length + " rated)";
+    if (avgEl.childNodes.length) avgEl.append(" \u00b7 ");
+    avgEl.appendChild(span);
   });
   const left = remaining().length;
   document.getElementById("count").textContent =

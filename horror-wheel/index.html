@@ -137,6 +137,9 @@
     background: radial-gradient(circle, transparent 0 26%, var(--frost) 30%);
   }
   .donut.on::after { border-color: #c58a52; }
+  .status { font-size: 0.8rem; color: var(--dim); padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; }
+  .status.ok { color: #7bd88f; border-color: #2f5a39; }
+  .status.bad { color: #ffb86b; border-color: #6b4a1f; }
   .avg { color: var(--dim); margin-top: 6px; font-size: 0.9rem; }
   .avg .b { color: #ff6fb5; } .avg .n { color: #ffd23f; }
 </style>
@@ -171,9 +174,9 @@
 
   <section class="list-col">
     <div class="toolbar">
-      <button id="sync">Copy sync link</button>
+      <span id="status" class="status">Connecting…</span>
       <button id="reset">Reset all</button>
-      <span class="note">Click a film to cross it off. Crossed-off films leave the wheel and can be rated 1 to 5 donuts (5 is best) by Bri in pink and Nick in yellow. Click a donut again to clear it. Progress and ratings are saved in this browser; use the sync link to carry them to another device.</span>
+      <span class="note">Click a film to cross it off. Crossed-off films leave the wheel and can be rated 1 to 5 donuts (5 is best) by Bri in pink and Nick in yellow. Click a donut again to clear it. Everything syncs automatically, so changes made on one device show up on the other within a few seconds.</span>
     </div>
     <div id="list"></div>
   </section>
@@ -248,6 +251,7 @@ function setR(n, who, v) {
   ratings[n] = r;
   save();
   updateUI();
+  push(n, who === 0 ? { bri: r[0] } : { nick: r[1] });
 }
 
 function load() {
@@ -255,32 +259,7 @@ function load() {
   try { ids = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { ids = mem; }
   watched = new Set(ids.filter(function (n) { return n >= 1 && n <= FILMS.length; }));
   try { ratings = JSON.parse(localStorage.getItem(RKEY) || "{}") || {}; } catch (e) {}
-  // Ratings carried by a sync link (r=<one base36 char per film: bri*6+nick>)
-  const rm = location.hash.match(/r=([0-9a-z]+)/i);
-  if (rm && rm[1].length === FILMS.length) {
-    FILMS.forEach(function (f, i) {
-      const v = parseInt(rm[1][i], 36);
-      const inc = [Math.floor(v / 6), v % 6];
-      const cur = getR(f.n).slice();
-      if (inc[0] >= 1 && inc[0] <= 5) cur[0] = inc[0];
-      if (inc[1] >= 1 && inc[1] <= 5) cur[1] = inc[1];
-      if (cur[0] || cur[1]) ratings[f.n] = cur;
-    });
-  }
-  // Merge in any state carried by a sync link (#w=<base36 bitmask>)
-  const m = location.hash.match(/w=([0-9a-z]+)/i);
-  if (m) {
-    try {
-      let bits = BigInt(0);
-      for (const ch of m[1].toLowerCase()) bits = bits * 36n + BigInt(parseInt(ch, 36));
-      FILMS.forEach(function (f) { if ((bits >> BigInt(f.n - 1)) & 1n) watched.add(f.n); });
-      save();
-    } catch (e) {}
-  }
-  if (m || rm) {
-    save();
-    history.replaceState(null, "", location.pathname + location.search);
-  }
+  try { migrated = localStorage.getItem(MKEY) === "1"; } catch (e) {}
 }
 function save() {
   mem = Array.from(watched);
@@ -289,11 +268,80 @@ function save() {
     localStorage.setItem(RKEY, JSON.stringify(ratings));
   } catch (e) {}
 }
-function syncLink() {
-  let bits = 0n;
-  watched.forEach(function (n) { bits |= 1n << BigInt(n - 1); });
-  const r = FILMS.map(function (f) { const x = getR(f.n); return (x[0] * 6 + x[1]).toString(36); }).join("");
-  return location.origin + location.pathname + "#w=" + bits.toString(36) + "&r=" + r;
+
+/* ---------- shared storage (Supabase) ----------
+   The key below is a publishable key meant for browsers. Row level security on the
+   hw_films table only allows reading rows and updating watched / bri / nick. */
+const API = "https://zquvatrihtctugeqqoju.supabase.co/rest/v1/hw_films";
+const API_KEY = "sb_publishable_88Tn8Xn2e_ixTlwZfEGzKg_CDTOkqrD";
+const HEADERS = {
+  apikey: API_KEY, Authorization: "Bearer " + API_KEY,
+  "Content-Type": "application/json", Prefer: "return=minimal"
+};
+const MKEY = "horrorWheel.migrated.v1";
+let migrated = false;
+let writeSeq = 0;
+let pending = 0;
+
+function setStatus(ok) {
+  const el = document.getElementById("status");
+  el.textContent = ok ? "Synced" : "Offline: changes stay on this device";
+  el.className = "status " + (ok ? "ok" : "bad");
+}
+function sig() {
+  return FILMS.map(function (f) { return (watched.has(f.n) ? 1 : 0) + getR(f.n).join(""); }).join(",");
+}
+// n = film number, or null for every film
+function push(n, patch) {
+  writeSeq++; pending++;
+  patch.updated_at = new Date().toISOString();
+  const q = n === null ? "?n=gte.1" : "?n=eq." + n;
+  return fetch(API + q, { method: "PATCH", headers: HEADERS, body: JSON.stringify(patch) })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); setStatus(true); })
+    .catch(function () { setStatus(false); })
+    .then(function () { pending--; });
+}
+function applyRemote(rows) {
+  const before = sig();
+  const w = new Set(); const r = {};
+  rows.forEach(function (x) {
+    if (x.watched) w.add(x.n);
+    if (x.bri || x.nick) r[x.n] = [x.bri, x.nick];
+  });
+  watched = w; ratings = r; save();
+  if (sig() === before) return;
+  if (current && watched.has(current.n)) {
+    document.getElementById("result").classList.remove("show");
+    setWinner(null);
+  }
+  updateUI(); draw();
+}
+// First sync on a device: send up anything saved here before syncing existed.
+function migrate(rows) {
+  const jobs = [];
+  rows.forEach(function (x) {
+    const patch = {}; const lr = getR(x.n);
+    if (watched.has(x.n) && !x.watched) patch.watched = true;
+    if (lr[0] && !x.bri) patch.bri = lr[0];
+    if (lr[1] && !x.nick) patch.nick = lr[1];
+    if (Object.keys(patch).length) jobs.push(push(x.n, patch));
+  });
+  migrated = true;
+  try { localStorage.setItem(MKEY, "1"); } catch (e) {}
+  return Promise.all(jobs).then(pull);
+}
+function pull() {
+  if (pending > 0 || spinning) return Promise.resolve();
+  const seq = writeSeq;
+  return fetch(API + "?select=n,watched,bri,nick&order=n", { headers: HEADERS, cache: "no-store" })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (rows) {
+      if (seq !== writeSeq || pending > 0 || spinning) return;
+      setStatus(true);
+      if (!migrated) return migrate(rows);
+      applyRemote(rows);
+    })
+    .catch(function () { setStatus(false); });
 }
 function remaining() { return FILMS.filter(function (f) { return !watched.has(f.n); }); }
 
@@ -422,6 +470,7 @@ function toggle(n) {
   if (spinning) return;
   if (watched.has(n)) watched.delete(n); else watched.add(n);
   save();
+  push(n, { watched: watched.has(n) });
   if (current && current.n === n && watched.has(n)) {
     document.getElementById("result").classList.remove("show");
     setWinner(null);
@@ -510,20 +559,6 @@ document.getElementById("r-watched").addEventListener("click", function () {
   if (current) toggle(current.n);
 });
 
-const syncBtn = document.getElementById("sync");
-syncBtn.addEventListener("click", function () {
-  const url = syncLink();
-  const done = function () {
-    syncBtn.textContent = "Link copied";
-    setTimeout(function () { syncBtn.textContent = "Copy sync link"; }, 1800);
-  };
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(done, function () { location.hash = url.split("#")[1]; });
-  } else {
-    location.hash = url.split("#")[1];
-  }
-});
-
 const resetBtn = document.getElementById("reset");
 let armed = null;
 resetBtn.addEventListener("click", function () {
@@ -534,6 +569,7 @@ resetBtn.addEventListener("click", function () {
   }
   clearTimeout(armed); armed = null; resetBtn.textContent = "Reset all";
   watched.clear(); save();
+  push(null, { watched: false });
   document.getElementById("result").classList.remove("show");
   setWinner(null); updateUI(); draw();
 });
@@ -542,6 +578,9 @@ load();
 buildList();
 updateUI();
 draw();
+pull();
+setInterval(function () { if (!document.hidden) pull(); }, 5000);
+document.addEventListener("visibilitychange", function () { if (!document.hidden) pull(); });
 </script>
 </body>
 </html>

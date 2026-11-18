@@ -177,12 +177,12 @@ h2 {
   font-family: var(--display); font-weight: 700; font-size: 1.18rem; line-height: 1.2;
   letter-spacing: -0.01em; margin: 0; text-wrap: balance;
 }
-.desc { margin: 3px 0 0; color: var(--muted); font-size: 0.95rem; }
+.desc { margin: 5px 0 0; color: var(--muted); font-size: 0.95rem; line-height: 1.42; }
 .dish[data-status="discard"] .name { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--muted); }
 .dish[data-status="discard"] .desc { display: none; }
 
 .heart {
-  flex: none; width: 46px; height: 46px; margin: -8px -6px 0 0;
+  flex: none; width: 46px; height: 46px; margin: -8px -6px -10px 0;
   display: grid; place-items: center;
   border: 0; border-radius: 50%; background: transparent; color: var(--muted);
 }
@@ -261,35 +261,35 @@ h2 {
      Never renumber or reuse one. Add new dishes with the next unused number
      (the database already holds rows 1 to 100). */
   var DISHES = [
-    { n: 1,  g: "Soups and stews", name: "Red lentil dal", desc: "Spinach and tomato, over brown rice" },
-    { n: 2,  g: "Soups and stews", name: "French lentil soup", desc: "Carrots, celery, kale, and lemon" },
-    { n: 3,  g: "Soups and stews", name: "Miso soup with tofu and soba", desc: "Mushrooms and bok choy" },
-    { n: 4,  g: "Soups and stews", name: "Hot and sour soup", desc: "Tofu and shiitake" },
-    { n: 5,  g: "Soups and stews", name: "Roasted tomato and red pepper soup", desc: "Blended smooth, with basil" },
-    { n: 6,  g: "Soups and stews", name: "Thai vegetable curry with tofu", desc: "Light coconut milk, heavy on the vegetables" },
+    { n: 1,  g: "Soups and stews", name: "Red lentil dal", desc: "Red lentils simmered with tomato, onion, garlic, ginger, turmeric, cumin, coriander, and mustard seed, with wilted spinach, lemon, and cilantro. Served over brown rice." },
+    { n: 2,  g: "Soups and stews", name: "French lentil soup", desc: "French green lentils with carrot, celery, onion, garlic, and kale in a tomato and vegetable broth with thyme and bay leaf, finished with lemon and parsley." },
+    { n: 3,  g: "Soups and stews", name: "Miso soup with tofu and soba", desc: "White miso broth with soft tofu, buckwheat soba noodles, shiitake mushrooms, baby bok choy, wakame seaweed, ginger, and scallions." },
+    { n: 4,  g: "Soups and stews", name: "Hot and sour soup", desc: "Tofu, shiitake and wood ear mushrooms, bamboo shoots, and carrot in a vegetable broth sharpened with rice vinegar, soy sauce, ginger, garlic, and white pepper, topped with scallions and a few drops of sesame oil." },
+    { n: 5,  g: "Soups and stews", name: "Roasted tomato and red pepper soup", desc: "Oven-roasted tomatoes, red bell peppers, onion, and garlic blended smooth with vegetable broth, olive oil, and smoked paprika, finished with fresh basil." },
+    { n: 6,  g: "Soups and stews", name: "Thai vegetable curry with tofu", desc: "Tofu, broccoli, red bell pepper, zucchini, carrot, and bamboo shoots in a light coconut milk red curry with ginger, garlic, lime, and Thai basil. Served with brown jasmine rice." },
 
-    { n: 7,  g: "Mains", name: "Baked tofu with roasted broccoli", desc: "Over quinoa" },
-    { n: 8,  g: "Mains", name: "Tofu stir-fry", desc: "Bok choy, peppers, and mushrooms" },
-    { n: 9,  g: "Mains", name: "Miso-glazed eggplant", desc: "With rice and cucumber salad" },
-    { n: 10, g: "Mains", name: "Mushroom and lentil bolognese", desc: "Over whole wheat pasta or spaghetti squash" },
-    { n: 11, g: "Mains", name: "Stuffed peppers", desc: "Lentils, quinoa, and tomato" },
-    { n: 12, g: "Mains", name: "Ratatouille over farro", desc: "Eggplant, zucchini, peppers, and tomato" },
-    { n: 13, g: "Mains", name: "Cauliflower steaks", desc: "Roasted, with chimichurri" },
-    { n: 14, g: "Mains", name: "Aloo gobi", desc: "Cauliflower and potato curry" },
-    { n: 15, g: "Mains", name: "Portobello and pepper fajitas", desc: "Corn tortillas and salsa" },
-    { n: 16, g: "Mains", name: "Lentil and mushroom shepherd's pie", desc: "Topped with cauliflower and potato mash" },
-    { n: 17, g: "Mains", name: "Cabbage rolls", desc: "Lentils and rice in tomato sauce" },
+    { n: 7,  g: "Mains", name: "Baked tofu with roasted broccoli", desc: "Tofu marinated in soy sauce, garlic, ginger, and a little maple syrup, baked until crisp at the edges. Served with roasted broccoli, quinoa, sesame seeds, scallions, and lemon." },
+    { n: 8,  g: "Mains", name: "Tofu stir-fry", desc: "Seared tofu with bok choy, red bell pepper, mushrooms, carrot, and broccoli in a glaze of garlic, ginger, soy sauce, rice vinegar, and a little sesame oil. Served over brown rice." },
+    { n: 9,  g: "Mains", name: "Miso-glazed eggplant", desc: "Roasted eggplant halves brushed with white miso, mirin, rice vinegar, and ginger, topped with sesame seeds and scallions. Served with brown rice and a cucumber salad dressed in rice vinegar." },
+    { n: 10, g: "Mains", name: "Mushroom and lentil bolognese", desc: "Cremini mushrooms and brown lentils slow-cooked with onion, carrot, celery, garlic, crushed tomatoes, tomato paste, oregano, and basil. Served over whole wheat spaghetti or roasted spaghetti squash." },
+    { n: 11, g: "Mains", name: "Stuffed peppers", desc: "Bell peppers filled with green lentils, quinoa, tomato, zucchini, onion, garlic, cumin, and smoked paprika, baked in tomato sauce and topped with parsley." },
+    { n: 12, g: "Mains", name: "Ratatouille over farro", desc: "Eggplant, zucchini, yellow squash, bell peppers, tomato, onion, and garlic stewed in olive oil with thyme and basil, spooned over farro." },
+    { n: 13, g: "Mains", name: "Cauliflower steaks", desc: "Thick slices of cauliflower roasted with olive oil, garlic, and smoked paprika, topped with a chimichurri of parsley, cilantro, oregano, garlic, red wine vinegar, olive oil, and chili flakes. Served over quinoa with lemony arugula." },
+    { n: 14, g: "Mains", name: "Aloo gobi", desc: "Cauliflower and potato cooked with onion, tomato, garlic, ginger, turmeric, cumin, coriander, and garam masala, finished with cilantro and lemon. Served with brown basmati rice." },
+    { n: 15, g: "Mains", name: "Portobello and pepper fajitas", desc: "Sliced portobello mushrooms, bell peppers, and red onion seared with lime, garlic, cumin, chili powder, and smoked paprika. Served on warm corn tortillas with fresh tomato salsa, avocado, shredded cabbage, and cilantro." },
+    { n: 16, g: "Mains", name: "Lentil and mushroom shepherd's pie", desc: "Brown lentils and cremini mushrooms with onion, carrot, celery, garlic, tomato paste, thyme, rosemary, and vegetable broth, baked under a mash of cauliflower and potato with olive oil and chives." },
+    { n: 17, g: "Mains", name: "Cabbage rolls", desc: "Tender cabbage leaves wrapped around green lentils, brown rice, onion, carrot, garlic, dill, and paprika, baked in tomato sauce with a touch of lemon." },
 
-    { n: 18, g: "Lighter meals", name: "Tempeh lettuce wraps", desc: "Larb style, with lime and herbs" },
-    { n: 19, g: "Lighter meals", name: "Summer rolls with tofu", desc: "Peanut and lime dipping sauce" },
-    { n: 20, g: "Lighter meals", name: "Sushi bowl", desc: "Marinated tofu, cucumber, carrot, avocado, and nori" },
-    { n: 21, g: "Lighter meals", name: "Quinoa tabbouleh", desc: "Parsley, mint, tomato, cucumber, and lemon" },
-    { n: 22, g: "Lighter meals", name: "Warm lentil salad", desc: "Roasted beets, herbs, and mustard vinaigrette" },
-    { n: 23, g: "Lighter meals", name: "Kale and sweet potato salad", desc: "Lemon and tahini dressing" },
-    { n: 24, g: "Lighter meals", name: "Tofu scramble", desc: "Peppers, spinach, and mushrooms" },
+    { n: 18, g: "Lighter meals", name: "Tempeh lettuce wraps", desc: "Crumbled tempeh cooked with shallot, garlic, ginger, lime juice, soy sauce, and chili, tossed with mint, cilantro, scallions, and toasted rice powder. Served in butter lettuce cups with cucumber and shredded carrot." },
+    { n: 19, g: "Lighter meals", name: "Summer rolls with tofu", desc: "Rice paper rolls filled with baked tofu, rice vermicelli, lettuce, cucumber, carrot, red cabbage, mint, cilantro, and Thai basil. Served with a dipping sauce of peanut butter, lime, soy sauce, garlic, and ginger." },
+    { n: 20, g: "Lighter meals", name: "Sushi bowl", desc: "Brown rice seasoned with rice vinegar, topped with tofu marinated in soy sauce and ginger, cucumber, carrot, avocado, radish, pickled ginger, nori, scallions, and sesame seeds, with a soy and wasabi dressing." },
+    { n: 21, g: "Lighter meals", name: "Quinoa tabbouleh", desc: "Quinoa tossed with plenty of parsley and mint, tomato, cucumber, scallions, lemon juice, and olive oil." },
+    { n: 22, g: "Lighter meals", name: "Warm lentil salad", desc: "French green lentils with roasted beets, arugula, shallot, parsley, dill, and toasted walnuts in a vinaigrette of Dijon mustard, red wine vinegar, and olive oil." },
+    { n: 23, g: "Lighter meals", name: "Kale and sweet potato salad", desc: "Massaged kale with roasted sweet potato, quinoa, apple, red onion, and toasted pumpkin seeds in a dressing of tahini, lemon, and garlic." },
+    { n: 24, g: "Lighter meals", name: "Tofu scramble", desc: "Crumbled tofu cooked with onion, bell pepper, mushrooms, spinach, garlic, turmeric, cumin, and nutritional yeast. Served with sliced tomato, avocado, and whole grain toast." },
 
-    { n: 25, g: "Nick's own recipes", name: "King oyster mushroom “scallops”", desc: "Over cauliflower purée or garlicky greens" },
-    { n: 26, g: "Nick's own recipes", name: "Walnut tacos, lightened up", desc: "Half walnut, half chopped mushroom" }
+    { n: 25, g: "Nick's own recipes", name: "King oyster mushroom “scallops”", desc: "Thick rounds of king oyster mushroom seared golden with garlic, thyme, white wine, and lemon, set on cauliflower pur\u00e9e with garlicky saut\u00e9ed spinach and parsley." },
+    { n: 26, g: "Nick's own recipes", name: "Walnut tacos, lightened up", desc: "Chopped walnuts and cremini mushrooms seasoned with cumin, chili powder, smoked paprika, garlic, and lime. Served on corn tortillas with shredded cabbage, pico de gallo, avocado, and cilantro." }
   ];
 
   /* ---------- shared storage (Supabase) ----------
@@ -460,12 +460,13 @@ h2 {
       }
       var li = el("li", "dish");
       var head = el("div", "head");
-      head.appendChild(el("div", "txt", '<h3 class="name">' + esc(d.name) + '</h3><p class="desc">' + esc(d.desc) + "</p>"));
+      head.appendChild(el("div", "txt", '<h3 class="name">' + esc(d.name) + "</h3>"));
       var heart = el("button", "heart", ICON.heart);
       heart.type = "button";
       heart.setAttribute("aria-label", "Love it: " + d.name);
       head.appendChild(heart);
       li.appendChild(head);
+      li.appendChild(el("p", "desc", esc(d.desc)));
 
       var choices = el("div", "choices");
       choices.setAttribute("role", "group");

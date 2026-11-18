@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bri's menu</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#3b1f45">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Bri's menu">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap">
+<style>
+/* Palette comes from the produce drawer: aubergine ink, leaf for keep,
+   turmeric for modify, beet for hearts. */
+:root {
+  --bg: #f7f4f9;
+  --surface: #ffffff;
+  --ink: #2b1a30;
+  --muted: #6e5f74;
+  --line: #e4dce8;
+  --hero: #3b1f45;
+  --hero-ink: #fbf6fd;
+  --hero-muted: #d9c6e0;
+  --keep: #2a7549;
+  --keep-soft: #e1f1e6;
+  --modify: #8f5a00;
+  --modify-soft: #fbefd2;
+  --discard: #6f6375;
+  --discard-soft: #ebe6ee;
+  --heart: #cf2460;
+  --heart-soft: #fbe2ea;
+  --bad: #b3261e;
+  --display: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --pad: max(16px, env(safe-area-inset-left, 0px));
+  --pad-r: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a111d;
+    --surface: #251a2a;
+    --ink: #f2eaf5;
+    --muted: #ad9db3;
+    --line: #3a2b40;
+    --hero: #2f1a37;
+    --hero-ink: #f8f0fb;
+    --hero-muted: #c5b0cd;
+    --keep: #86d3a0;
+    --keep-soft: #1d3626;
+    --modify: #ecbb5e;
+    --modify-soft: #3a2d12;
+    --discard: #a698ab;
+    --discard-soft: #33283a;
+    --heart: #ff6f9c;
+    --heart-soft: #48192b;
+    --bad: #ff8a80;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+button, textarea { font: inherit; color: inherit; }
+button { touch-action: manipulation; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--heart); outline-offset: 2px; }
+
+/* ---------- hero ---------- */
+.hero {
+  background: var(--hero);
+  color: var(--hero-ink);
+  padding: 34px var(--pad-r) 30px var(--pad);
+}
+.hero-in, .bar-in, main { max-width: 560px; margin: 0 auto; }
+h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(2.9rem, 15vw, 4.4rem);
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  margin: 0 0 16px;
+}
+.hero p { margin: 0; color: var(--hero-muted); font-size: 1.02rem; max-width: 34ch; }
+
+/* ---------- sticky bar ---------- */
+.bar {
+  position: sticky; top: 0; z-index: 5;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0 8px;
+}
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .bar {
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  }
+}
+.bar-top {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 0 var(--pad-r) 0 var(--pad);
+}
+.progress-text { font-weight: 600; font-size: 0.95rem; }
+.status { font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+.status::before {
+  content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--muted); margin-right: 6px; vertical-align: 1px;
+}
+.status.ok::before { background: var(--keep); }
+.status.bad { color: var(--bad); }
+.status.bad::before { background: var(--bad); }
+.meter {
+  display: flex; height: 6px; border-radius: 3px; overflow: hidden;
+  background: var(--line); margin: 8px var(--pad-r) 10px var(--pad);
+}
+.meter i { display: block; height: 100%; width: 0; transition: width 0.25s ease; }
+.meter .m-keep { background: var(--keep); }
+.meter .m-modify { background: var(--modify); }
+.meter .m-discard { background: var(--discard); }
+.chips {
+  display: flex; gap: 8px; overflow-x: auto;
+  padding: 0 var(--pad-r) 2px var(--pad);
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; min-height: 40px; padding: 0 14px;
+  border: 1px solid var(--line); border-radius: 20px;
+  background: var(--surface); font-size: 0.92rem; font-weight: 500; white-space: nowrap;
+}
+.chip b { font-weight: 500; color: var(--muted); margin-left: 5px; font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.chip[aria-pressed="true"] b { color: inherit; opacity: 0.7; }
+
+/* ---------- list ---------- */
+main {
+  padding: 8px var(--pad-r) calc(56px + env(safe-area-inset-bottom, 0px)) var(--pad);
+}
+section { margin-top: 26px; }
+h2 {
+  font-family: var(--display);
+  font-weight: 700; font-size: 1.45rem; letter-spacing: -0.02em; line-height: 1.1;
+  margin: 0 0 10px 2px;
+}
+.group {
+  list-style: none; margin: 0; padding: 0;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+}
+.dish { position: relative; padding: 16px 14px 16px 18px; border-top: 1px solid var(--line); }
+.dish:first-child, .dish.first { border-top: 0; }
+.dish::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: transparent;
+}
+.dish[data-status="keep"]::before { background: var(--keep); }
+.dish[data-status="modify"]::before { background: var(--modify); }
+.dish[data-status="discard"]::before { background: var(--discard); }
+.dish[data-heart="1"] { background: linear-gradient(90deg, var(--heart-soft), transparent 70%); }
+
+.head { display: flex; align-items: flex-start; gap: 8px; }
+.txt { flex: 1; min-width: 0; padding-top: 2px; }
+.name {
+  font-family: var(--display); font-weight: 700; font-size: 1.18rem; line-height: 1.2;
+  letter-spacing: -0.01em; margin: 0; text-wrap: balance;
+}
+.desc { margin: 3px 0 0; color: var(--muted); font-size: 0.95rem; }
+.dish[data-status="discard"] .name { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--muted); }
+.dish[data-status="discard"] .desc { display: none; }
+
+.heart {
+  flex: none; width: 46px; height: 46px; margin: -8px -6px 0 0;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%; background: transparent; color: var(--muted);
+}
+.heart svg { width: 27px; height: 27px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.heart[aria-pressed="true"] { color: var(--heart); }
+.heart[aria-pressed="true"] svg { fill: currentColor; }
+.heart.pop svg { animation: pop 0.34s ease; }
+@keyframes pop { 40% { transform: scale(1.38); } 100% { transform: scale(1); } }
+.dish[data-status="discard"] .heart { visibility: hidden; }
+
+.choices { display: flex; gap: 8px; margin-top: 13px; }
+.choice {
+  flex: 1; min-height: 46px; padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1.5px solid var(--line); border-radius: 13px; background: transparent;
+  font-size: 0.95rem; font-weight: 600;
+}
+.choice svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.choice[data-v="keep"][aria-pressed="true"] { background: var(--keep-soft); border-color: var(--keep); color: var(--keep); }
+.choice[data-v="modify"][aria-pressed="true"] { background: var(--modify-soft); border-color: var(--modify); color: var(--modify); }
+.choice[data-v="discard"][aria-pressed="true"] { background: var(--discard-soft); border-color: var(--discard); color: var(--discard); }
+
+.note { margin-top: 12px; }
+.note label { display: block; font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; color: var(--modify); }
+.note textarea {
+  display: block; width: 100%; min-height: 76px; resize: none;
+  padding: 11px 12px; border: 1.5px solid var(--modify); border-radius: 13px;
+  background: var(--bg); font-size: 16px; line-height: 1.4;
+}
+.note textarea:focus { outline: 3px solid var(--modify-soft); outline-offset: 0; }
+.note textarea::placeholder { color: var(--muted); opacity: 0.8; }
+.saved { min-height: 1.2em; margin: 5px 2px 0; font-size: 0.82rem; color: var(--muted); }
+
+.empty { margin: 34px 4px 0; color: var(--muted); }
+.foot { margin: 30px 4px 0; color: var(--muted); font-size: 0.85rem; }
+[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .heart.pop svg { animation: none; }
+  .meter i { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-in">
+    <h1>Bri's menu</h1>
+    <p>Nick is cooking. Mark each dish Keep, Modify, or Discard, and heart the ones you really, really want.</p>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="bar-top">
+      <span class="progress-text" id="progress"></span>
+      <span class="status" id="status" role="status">Connecting</span>
+    </div>
+    <div class="meter" aria-hidden="true"><i class="m-keep" id="mKeep"></i><i class="m-modify" id="mModify"></i><i class="m-discard" id="mDiscard"></i></div>
+    <div class="chips" id="chips" role="group" aria-label="Show"></div>
+  </div>
+</div>
+
+<main>
+  <div id="list"></div>
+  <p class="empty" id="empty" hidden></p>
+  <p class="foot">Changes save on their own and show up on Nick's screen within a few seconds.</p>
+  <noscript><p class="empty">This page needs JavaScript turned on.</p></noscript>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  /* Dish numbers are permanent: they tie each dish to its saved answer.
+     Never renumber or reuse one. Add new dishes with the next unused number
+     (the database already holds rows 1 to 100). */
+  var DISHES = [
+    { n: 1,  g: "Soups and stews", name: "Red lentil dal", desc: "Spinach and tomato, over brown rice" },
+    { n: 2,  g: "Soups and stews", name: "French lentil soup", desc: "Carrots, celery, kale, and lemon" },
+    { n: 3,  g: "Soups and stews", name: "Miso soup with tofu and soba", desc: "Mushrooms and bok choy" },
+    { n: 4,  g: "Soups and stews", name: "Hot and sour soup", desc: "Tofu and shiitake" },
+    { n: 5,  g: "Soups and stews", name: "Roasted tomato and red pepper soup", desc: "Blended smooth, with basil" },
+    { n: 6,  g: "Soups and stews", name: "Thai vegetable curry with tofu", desc: "Light coconut milk, heavy on the vegetables" },
+
+    { n: 7,  g: "Mains", name: "Baked tofu with roasted broccoli", desc: "Over quinoa" },
+    { n: 8,  g: "Mains", name: "Tofu stir-fry", desc: "Bok choy, peppers, and mushrooms" },
+    { n: 9,  g: "Mains", name: "Miso-glazed eggplant", desc: "With rice and cucumber salad" },
+    { n: 10, g: "Mains", name: "Mushroom and lentil bolognese", desc: "Over whole wheat pasta or spaghetti squash" },
+    { n: 11, g: "Mains", name: "Stuffed peppers", desc: "Lentils, quinoa, and tomato" },
+    { n: 12, g: "Mains", name: "Ratatouille over farro", desc: "Eggplant, zucchini, peppers, and tomato" },
+    { n: 13, g: "Mains", name: "Cauliflower steaks", desc: "Roasted, with chimichurri" },
+    { n: 14, g: "Mains", name: "Aloo gobi", desc: "Cauliflower and potato curry" },
+    { n: 15, g: "Mains", name: "Portobello and pepper fajitas", desc: "Corn tortillas and salsa" },
+    { n: 16, g: "Mains", name: "Lentil and mushroom shepherd's pie", desc: "Topped with cauliflower and potato mash" },
+    { n: 17, g: "Mains", name: "Cabbage rolls", desc: "Lentils and rice in tomato sauce" },
+
+    { n: 18, g: "Lighter meals", name: "Tempeh lettuce wraps", desc: "Larb style, with lime and herbs" },
+    { n: 19, g: "Lighter meals", name: "Summer rolls with tofu", desc: "Peanut and lime dipping sauce" },
+    { n: 20, g: "Lighter meals", name: "Sushi bowl", desc: "Marinated tofu, cucumber, carrot, avocado, and nori" },
+    { n: 21, g: "Lighter meals", name: "Quinoa tabbouleh", desc: "Parsley, mint, tomato, cucumber, and lemon" },
+    { n: 22, g: "Lighter meals", name: "Warm lentil salad", desc: "Roasted beets, herbs, and mustard vinaigrette" },
+    { n: 23, g: "Lighter meals", name: "Kale and sweet potato salad", desc: "Lemon and tahini dressing" },
+    { n: 24, g: "Lighter meals", name: "Tofu scramble", desc: "Peppers, spinach, and mushrooms" },
+
+    { n: 25, g: "Nick's own recipes", name: "King oyster mushroom “scallops”", desc: "Over cauliflower purée or garlicky greens" },
+    { n: 26, g: "Nick's own recipes", name: "Walnut tacos, lightened up", desc: "Half walnut, half chopped mushroom" }
+  ];
+
+  /* ---------- shared storage (Supabase) ----------
+     The key below is a publishable key meant for browsers. Row level security on the
+     bri_dishes table only allows reading rows and updating status / note / heart. */
+  var API = "https://zquvatrihtctugeqqoju.supabase.co/rest/v1/bri_dishes";
+  var API_KEY = "sb_publishable_88Tn8Xn2e_ixTlwZfEGzKg_CDTOkqrD";
+  var HEADERS = {
+    apikey: API_KEY, Authorization: "Bearer " + API_KEY,
+    "Content-Type": "application/json", Prefer: "return=minimal"
+  };
+  var CACHE = "briMenu.state.v1";
+  var QKEY = "briMenu.queue.v1";
+  var STATUSES = ["keep", "modify", "discard"];
+  var MAXN = DISHES.reduce(function (m, d) { return Math.max(m, d.n); }, 0);
+
+  var state = {};     // n -> { status, note, heart }
+  var queue = {};     // n -> changes waiting to be sent
+  var sending = {};   // n -> changes on their way
+  var typing = {};    // n -> true while a note is being edited
+  var timers = {};    // n -> note debounce timer
+  var rows = {};      // n -> row elements
+  var writeSeq = 0;
+  var leaving = false;  // true once the page is closing, so last writes outlive it
+  var filter = "all";
+
+  function get(n) {
+    if (!state[n]) state[n] = { status: "", note: "", heart: false };
+    return state[n];
+  }
+  function readJSON(key) {
+    try { return JSON.parse(localStorage.getItem(key) || "{}") || {}; } catch (e) { return {}; }
+  }
+  function saveLocal() {
+    var waiting = {};
+    Object.keys(sending).forEach(function (n) { waiting[n] = Object.assign({}, sending[n]); });
+    Object.keys(queue).forEach(function (n) { waiting[n] = Object.assign(waiting[n] || {}, queue[n]); });
+    try {
+      localStorage.setItem(CACHE, JSON.stringify(state));
+      localStorage.setItem(QKEY, JSON.stringify(waiting));
+    } catch (e) {}
+  }
+  function busy() { return Object.keys(queue).length > 0 || Object.keys(sending).length > 0; }
+
+  function setStatus(ok) {
+    var el = document.getElementById("status");
+    el.textContent = ok ? "Synced" : "Offline. Changes will sync later.";
+    el.className = "status " + (ok ? "ok" : "bad");
+  }
+  function setSaved(n, text) {
+    if (rows[n]) rows[n].saved.textContent = text;
+  }
+
+  // Record a change locally, then send it.
+  function change(n, patch) {
+    Object.assign(get(n), patch);
+    queue[n] = Object.assign(queue[n] || {}, patch);
+    writeSeq++;
+    saveLocal();
+    renderRow(n);
+    renderCounts();
+    flush();
+  }
+  function flush() {
+    Object.keys(queue).forEach(function (n) {
+      if (sending[n]) return;           // one request per dish at a time, so they land in order
+      var sent = queue[n];
+      delete queue[n];
+      sending[n] = sent;
+      var ok = false;
+      var body = Object.assign({}, sent, { updated_at: new Date().toISOString() });
+      fetch(API + "?n=eq." + n, {
+        method: "PATCH", headers: HEADERS, body: JSON.stringify(body), keepalive: leaving
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error(r.status);
+          ok = true;
+          setStatus(true);
+          if ("note" in sent && !queue[n]) setSaved(n, "Saved");
+        })
+        .catch(function () {
+          queue[n] = Object.assign({}, sent, queue[n] || {});   // newer edits win
+          setStatus(false);
+          if ("note" in sent) setSaved(n, "Saved on this phone. Will sync when you're back online.");
+        })
+        .then(function () {
+          delete sending[n];
+          saveLocal();
+          if (ok && queue[n]) flush();
+        });
+    });
+  }
+  function applyRemote(list) {
+    var changed = false;
+    list.forEach(function (x) {
+      if (!rows[x.n]) return;
+      var s = get(x.n);
+      var status = STATUSES.indexOf(x.status) >= 0 ? x.status : "";
+      var note = typing[x.n] ? s.note : (x.note || "");
+      var heart = !!x.heart;
+      if (s.status === status && s.note === note && s.heart === heart) return;
+      s.status = status; s.note = note; s.heart = heart;
+      changed = true;
+      renderRow(x.n);
+    });
+    if (changed) { saveLocal(); renderCounts(); }
+  }
+  function pull() {
+    if (busy()) { flush(); return; }
+    var seq = writeSeq;
+    fetch(API + "?select=n,status,note,heart&n=lte." + MAXN + "&order=n", { headers: HEADERS, cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (list) {
+        setStatus(true);
+        if (seq !== writeSeq || busy()) return;   // something changed here meanwhile; next pull catches up
+        applyRemote(list);
+      })
+      .catch(function () { setStatus(false); });
+  }
+
+  /* ---------- notes ---------- */
+  function grow(ta) {
+    ta.style.height = "auto";
+    ta.style.height = Math.max(76, ta.scrollHeight + 3) + "px";
+  }
+  function commitNote(n) {
+    clearTimeout(timers[n]);
+    timers[n] = null;
+    var ta = rows[n].ta;
+    var v = ta.value.replace(/\s+$/, "");
+    typing[n] = document.activeElement === ta;
+    if (v !== get(n).note) {
+      setSaved(n, "Saving");
+      change(n, { note: v });
+    }
+  }
+
+  /* ---------- rendering ---------- */
+  var ICON = {
+    keep: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg>',
+    modify: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-4.5L16.5 4l3.5 3.5L8.5 19 4 20z"/></svg>',
+    discard: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    heart: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5l-1.3-1.2C5.4 14.5 2 11.4 2 7.6 2 4.5 4.4 2.5 7.2 2.5c1.7 0 3.4.8 4.8 2.4 1.4-1.6 3.1-2.4 4.8-2.4C19.6 2.5 22 4.5 22 7.6c0 3.8-3.4 6.9-8.7 11.7L12 20.5z"/></svg>'
+  };
+  var LABEL = { keep: "Keep", modify: "Modify", discard: "Discard" };
+
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html != null) e.innerHTML = html;
+    return e;
+  }
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function build() {
+    var list = document.getElementById("list");
+    var groups = {};
+    DISHES.forEach(function (d) {
+      if (!groups[d.g]) {
+        var sec = el("section");
+        sec.appendChild(el("h2", "", esc(d.g)));
+        var ul = el("ul", "group");
+        sec.appendChild(ul);
+        list.appendChild(sec);
+        groups[d.g] = { sec: sec, ul: ul };
+      }
+      var li = el("li", "dish");
+      var head = el("div", "head");
+      head.appendChild(el("div", "txt", '<h3 class="name">' + esc(d.name) + '</h3><p class="desc">' + esc(d.desc) + "</p>"));
+      var heart = el("button", "heart", ICON.heart);
+      heart.type = "button";
+      heart.setAttribute("aria-label", "Love it: " + d.name);
+      head.appendChild(heart);
+      li.appendChild(head);
+
+      var choices = el("div", "choices");
+      choices.setAttribute("role", "group");
+      choices.setAttribute("aria-label", d.name);
+      var btns = {};
+      STATUSES.forEach(function (v) {
+        var b = el("button", "choice", ICON[v] + "<span>" + LABEL[v] + "</span>");
+        b.type = "button";
+        b.dataset.v = v;
+        b.addEventListener("click", function () { choose(d.n, v); });
+        choices.appendChild(b);
+        btns[v] = b;
+      });
+      li.appendChild(choices);
+
+      var note = el("div", "note");
+      var id = "note" + d.n;
+      note.innerHTML = '<label for="' + id + '">What should change?</label>' +
+        '<textarea id="' + id + '" rows="2" maxlength="500" enterkeyhint="done" ' +
+        'placeholder="Less spicy, swap the rice, no mushrooms…"></textarea>' +
+        '<p class="saved" aria-live="polite"></p>';
+      note.hidden = true;
+      li.appendChild(note);
+      var ta = note.querySelector("textarea");
+      ta.addEventListener("focus", function () { typing[d.n] = true; });
+      ta.addEventListener("input", function () {
+        typing[d.n] = true;
+        grow(ta);
+        setSaved(d.n, "");
+        clearTimeout(timers[d.n]);
+        timers[d.n] = setTimeout(function () { commitNote(d.n); }, 800);
+      });
+      ta.addEventListener("blur", function () { typing[d.n] = false; commitNote(d.n); });
+
+      heart.addEventListener("click", function () {
+        var on = !get(d.n).heart;
+        change(d.n, { heart: on });
+        if (on) {
+          heart.classList.remove("pop");
+          void heart.offsetWidth;
+          heart.classList.add("pop");
+        }
+      });
+
+      groups[d.g].ul.appendChild(li);
+      rows[d.n] = { li: li, heart: heart, btns: btns, note: note, ta: ta, saved: note.querySelector(".saved"), sec: groups[d.g].sec };
+    });
+  }
+
+  function choose(n, v) {
+    var s = get(n);
+    var next = s.status === v ? "" : v;       // tapping the lit choice clears it
+    var patch = { status: next };
+    if (next === "discard" && s.heart) patch.heart = false;
+    change(n, patch);
+    if (next === "modify") {
+      var ta = rows[n].ta;
+      ta.focus({ preventScroll: true });
+      rows[n].li.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }
+
+  function renderRow(n) {
+    var r = rows[n];
+    if (!r) return;
+    var s = get(n);
+    r.li.dataset.status = s.status || "none";
+    r.li.dataset.heart = s.heart ? "1" : "0";
+    r.heart.setAttribute("aria-pressed", s.heart ? "true" : "false");
+    STATUSES.forEach(function (v) {
+      r.btns[v].setAttribute("aria-pressed", s.status === v ? "true" : "false");
+    });
+    var show = s.status === "modify";
+    if (r.note.hidden === show) r.note.hidden = !show;
+    if (!typing[n] && r.ta.value !== s.note) r.ta.value = s.note;
+    if (show) grow(r.ta);
+  }
+
+  /* ---------- filters and counts ---------- */
+  var FILTERS = [
+    { id: "all", label: "All" },
+    { id: "todo", label: "To decide" },
+    { id: "keep", label: "Keep" },
+    { id: "modify", label: "Modify" },
+    { id: "discard", label: "Discard" },
+    { id: "heart", label: "Hearts" }
+  ];
+  var EMPTY = {
+    todo: "Every dish has an answer. Nick has his orders.",
+    keep: "Nothing marked Keep yet.",
+    modify: "Nothing marked Modify yet.",
+    discard: "Nothing discarded yet.",
+    heart: "No hearts yet. Tap the heart on anything you really, really want."
+  };
+  var chipEls = {};
+
+  function matches(n, f) {
+    var s = get(n);
+    if (f === "all") return true;
+    if (f === "todo") return !s.status;
+    if (f === "heart") return s.heart;
+    return s.status === f;
+  }
+  function count(f) {
+    return DISHES.filter(function (d) { return matches(d.n, f); }).length;
+  }
+  function buildChips() {
+    var box = document.getElementById("chips");
+    FILTERS.forEach(function (f) {
+      var b = el("button", "chip", esc(f.label) + "<b></b>");
+      b.type = "button";
+      b.addEventListener("click", function () { filter = f.id; applyFilter(); });
+      box.appendChild(b);
+      chipEls[f.id] = b;
+    });
+  }
+  // Rows only move in or out when a filter is tapped, so a dish never jumps away mid-edit.
+  function applyFilter() {
+    var any = false;
+    var seen = [];
+    DISHES.forEach(function (d) {
+      var r = rows[d.n];
+      var show = matches(d.n, filter);
+      r.li.hidden = !show;
+      r.li.classList.remove("first");
+      if (show) {
+        any = true;
+        if (seen.indexOf(r.sec) < 0) { seen.push(r.sec); r.li.classList.add("first"); }
+        if (get(d.n).status === "modify") grow(r.ta);
+      }
+    });
+    Object.keys(rows).forEach(function (n) {
+      rows[n].sec.hidden = seen.indexOf(rows[n].sec) < 0;
+    });
+    var empty = document.getElementById("empty");
+    empty.hidden = any;
+    empty.textContent = any ? "" : (EMPTY[filter] || "");
+    FILTERS.forEach(function (f) {
+      chipEls[f.id].setAttribute("aria-pressed", f.id === filter ? "true" : "false");
+    });
+  }
+  function renderCounts() {
+    var total = DISHES.length;
+    var c = { keep: count("keep"), modify: count("modify"), discard: count("discard") };
+    var done = c.keep + c.modify + c.discard;
+    document.getElementById("progress").textContent =
+      done === total ? "All " + total + " decided" : done + " of " + total + " decided";
+    document.getElementById("mKeep").style.width = (100 * c.keep / total) + "%";
+    document.getElementById("mModify").style.width = (100 * c.modify / total) + "%";
+    document.getElementById("mDiscard").style.width = (100 * c.discard / total) + "%";
+    FILTERS.forEach(function (f) {
+      chipEls[f.id].querySelector("b").textContent = count(f.id);
+    });
+  }
+
+  /* ---------- start ---------- */
+  state = readJSON(CACHE);
+  queue = readJSON(QKEY);
+  build();
+  buildChips();
+  DISHES.forEach(function (d) { renderRow(d.n); });
+  renderCounts();
+  applyFilter();
+  pull();
+
+  setInterval(function () {
+    if (document.visibilityState === "visible") pull();
+  }, 5000);
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") pull();
+  });
+  window.addEventListener("online", pull);
+  window.addEventListener("pagehide", function () {
+    leaving = true;
+    Object.keys(timers).forEach(function (n) { if (timers[n]) commitNote(n); });
+    flush();
+  });
+  window.addEventListener("pageshow", function () { leaving = false; });
+})();
+</script>
+</body>
+</html>

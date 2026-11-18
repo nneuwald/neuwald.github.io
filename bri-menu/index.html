@@ -35,8 +35,6 @@
   --discard-soft: #ebe6ee;
   --heart: #cf2460;
   --heart-soft: #fbe2ea;
-  --health: #4a9a2e;
-  --yummy: #e2622a;
   --bad: #b3261e;
   --display: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -61,8 +59,6 @@
     --discard-soft: #33283a;
     --heart: #ff6f9c;
     --heart-soft: #48192b;
-    --health: #9bd36a;
-    --yummy: #ff8f5e;
     --bad: #ff8a80;
     color-scheme: dark;
   }
@@ -197,17 +193,7 @@ h2 {
 }
 .desc { margin: 5px 0 0; color: var(--muted); font-size: 0.95rem; line-height: 1.42; }
 .dish[data-status="discard"] .name { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--muted); }
-.dish[data-status="discard"] .desc, .dish[data-status="discard"] .scores { display: none; }
-
-/* health and yummy estimates, 1 to 5 */
-.scores { display: flex; gap: 16px; margin-top: 12px; }
-.score { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 7px; }
-.score-label { font-size: 0.82rem; font-weight: 600; color: var(--muted); }
-.pips { flex: 1; display: flex; gap: 3px; }
-.pips i { flex: 1; height: 8px; border-radius: 4px; background: var(--line); }
-.health .pips .on { background: var(--health); }
-.yummy .pips .on { background: var(--yummy); }
-.score-num { font-size: 0.85rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.dish[data-status="discard"] .desc { display: none; }
 
 .heart {
   flex: none; width: 46px; height: 46px; margin: -8px -6px -10px 0;
@@ -287,7 +273,7 @@ h2 {
 <main>
   <div id="list"></div>
   <p class="empty" id="empty" hidden></p>
-  <p class="foot">Changes save on their own and show up on Nick's screen within a few seconds. The health and yummy bars are rough guesses out of 5.</p>
+  <p class="foot">Changes save on their own and show up on Nick's screen within a few seconds.</p>
   <noscript><p class="empty">This page needs JavaScript turned on.</p></noscript>
 </main>
 
@@ -298,7 +284,8 @@ h2 {
   /* Dish numbers are permanent: they tie each dish to its saved answer.
      Never renumber or reuse one. Add new dishes with the next unused number
      (the database already holds rows 1 to 100).
-     h and y are rough estimates out of 5: how healthy and how yummy. */
+     h and y are rough estimates out of 5 (how healthy, how yummy). They are not shown;
+     they only drive the sort picker. */
   var DISHES = [
     { n: 1,  g: "Soups and stews", name: "Red lentil dal", desc: "Red lentils simmered with tomato, onion, garlic, ginger, turmeric, cumin, coriander, and mustard seed, with wilted spinach, lemon, and cilantro. Served over brown rice.", h: 5, y: 4 },
     { n: 2,  g: "Soups and stews", name: "French lentil soup", desc: "French green lentils with carrot, celery, onion, garlic, and kale in a tomato and vegetable broth with thyme and bay leaf, finished with lemon and parsley.", h: 5, y: 3 },
@@ -505,14 +492,6 @@ h2 {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
-  function score(kind, label, v) {
-    var pips = "";
-    for (var i = 1; i <= 5; i++) pips += i <= v ? '<i class="on"></i>' : "<i></i>";
-    return '<div class="score ' + kind + '" role="img" aria-label="' + label + ": " + v + ' out of 5">' +
-      '<span class="score-label">' + label + '</span><span class="pips">' + pips + "</span>" +
-      '<span class="score-num">' + v + "</span></div>";
-  }
-
   function build() {
     var list = document.getElementById("list");
     var groups = {};
@@ -541,7 +520,6 @@ h2 {
       li.appendChild(head);
       li.dataset.n = d.n;
       li.appendChild(el("p", "desc", esc(d.desc)));
-      li.appendChild(el("div", "scores", score("health", "Health", d.h) + score("yummy", "Yummy", d.y)));
 
       var choices = el("div", "choices");
       choices.setAttribute("role", "group");
@@ -677,20 +655,22 @@ h2 {
       chipEls[f.id] = b;
     });
   }
-  var SORTS = { menu: "Menu order", health: "Healthiest first", yummy: "Yummiest first" };
+  var SORTS = { menu: "Menu order", alpha: "A to Z", health: "Healthiest first", yummy: "Yummiest first" };
 
-  // Menu order keeps the course sections; a rating sort puts every dish in one list,
-  // best first, with the other rating breaking ties.
+  // Menu order keeps the course sections. Any other sort puts every dish in one list:
+  // by name, or by a rating (best first, the other rating breaking ties).
   function arrange() {
     var order = DISHES.slice();
-    if (sort !== "menu") {
+    if (sort === "alpha") {
+      order.sort(function (p, q) { return p.name.localeCompare(q.name, "en", { sensitivity: "base" }); });
+    } else if (sort !== "menu") {
       var a = sort === "health" ? "h" : "y";
       var b = sort === "health" ? "y" : "h";
       order.sort(function (p, q) {
         return q[a] - p[a] || q[b] - p[b] || DISHES.indexOf(p) - DISHES.indexOf(q);
       });
-      flat.h2.textContent = SORTS[sort];
     }
+    if (sort !== "menu") flat.h2.textContent = SORTS[sort];
     order.forEach(function (d) {
       (sort === "menu" ? rows[d.n].home.ul : flat.ul).appendChild(rows[d.n].li);
     });

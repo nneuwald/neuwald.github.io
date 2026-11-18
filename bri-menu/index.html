@@ -88,20 +88,21 @@ button { touch-action: manipulation; cursor: pointer; }
 .hero {
   background: var(--hero);
   color: var(--hero-ink);
-  padding: 34px var(--pad-r) 30px var(--pad);
+  padding: 26px var(--pad-r) 26px var(--pad);
 }
+.hero-in { display: flex; align-items: center; gap: 16px; }
 .hero-in, .bar-in, main { max-width: 560px; margin: 0 auto; }
 .hero-in { max-width: 528px; }  /* lines the title up with the list on wide screens */
 h1 {
   font-family: var(--display);
   font-weight: 700;
-  font-size: clamp(2.9rem, 15vw, 4.4rem);
+  font-size: clamp(2.4rem, 12.5vw, 4.4rem);
   line-height: 0.92;
   letter-spacing: -0.035em;
-  margin: 0 0 16px;
+  margin: 0; min-width: 0;
 }
-.hero p { margin: 0; color: var(--hero-muted); font-size: 1.02rem; max-width: 34ch; }
-.hero .hint { margin-top: 10px; font-size: 0.92rem; }
+.logo { flex: none; width: clamp(64px, 21vw, 104px); height: auto; color: var(--hero-ink); }
+.logo .carrot { fill: #f2884b; }
 
 /* ---------- sticky bar ---------- */
 .bar {
@@ -258,8 +259,18 @@ h2 {
 <header class="hero">
   <div class="hero-in">
     <h1>Bri's menu</h1>
-    <p>Nick is cooking. Mark each dish Keep, Modify, or Discard, and heart the ones you really, really want.</p>
-    <p class="hint">The bars are a rough guess, out of 5, at how healthy and how yummy each dish is.</p>
+    <svg class="logo" viewBox="0 0 120 120" role="img" aria-label="A bunny eating a carrot" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="60" cy="60" r="56.5" stroke-width="1.5"/>
+      <g transform="translate(-5 1)">
+        <path d="M50.5 47.5C41 35 39.5 16.5 45.5 11.5C53 15.5 56.5 33 55.5 46"/>
+        <path d="M69.5 47.5C79 35 80.5 16.5 74.5 11.5C67 15.5 63.5 33 64.5 46"/>
+        <path d="M39 68C39 54.5 48 46 60 46C72 46 81 54.5 81 68C81 81.5 72 90 60 90C48 90 39 81.5 39 68Z"/>
+        <path d="M48.5 65.5q3.5-4 7 0M64.5 65.5q3.5-4 7 0"/>
+        <path d="M58.2 72h3.6l-1.8 2.2z" fill="currentColor" stroke-width="1.6"/>
+        <path d="M88.5 93.5q6.5-1.5 9-7.5M88.5 93.5q6.5 2.5 10.5 .5M88.5 93.5q3.5 4.5 3 9"/>
+        <path class="carrot" d="M58 78L88.6 88.2Q92.5 95.5 83.4 97.8Z"/>
+      </g>
+    </svg>
   </div>
 </header>
 
@@ -277,7 +288,7 @@ h2 {
 <main>
   <div id="list"></div>
   <p class="empty" id="empty" hidden></p>
-  <p class="foot">Changes save on their own and show up on Nick's screen within a few seconds.</p>
+  <p class="foot">Changes save on their own and show up on Nick's screen within a few seconds. The health and yummy bars are rough guesses out of 5.</p>
   <noscript><p class="empty">This page needs JavaScript turned on.</p></noscript>
 </main>
 

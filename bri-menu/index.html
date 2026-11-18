@@ -35,6 +35,8 @@
   --discard-soft: #ebe6ee;
   --heart: #cf2460;
   --heart-soft: #fbe2ea;
+  --health: #4a9a2e;
+  --yummy: #e2622a;
   --bad: #b3261e;
   --display: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -59,6 +61,8 @@
     --discard-soft: #33283a;
     --heart: #ff6f9c;
     --heart-soft: #48192b;
+    --health: #9bd36a;
+    --yummy: #ff8f5e;
     --bad: #ff8a80;
     color-scheme: dark;
   }
@@ -97,6 +101,7 @@ h1 {
   margin: 0 0 16px;
 }
 .hero p { margin: 0; color: var(--hero-muted); font-size: 1.02rem; max-width: 34ch; }
+.hero .hint { margin-top: 10px; font-size: 0.92rem; }
 
 /* ---------- sticky bar ---------- */
 .bar {
@@ -145,6 +150,18 @@ h1 {
 }
 .chip b { font-weight: 500; color: var(--muted); margin-left: 5px; font-variant-numeric: tabular-nums; }
 .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.chip.sort { display: inline-flex; align-items: center; gap: 6px; padding-right: 12px; cursor: pointer; }
+.chip.sort span { color: var(--muted); }
+.chip.sort select {
+  -webkit-appearance: none; appearance: none; border: 0; background: transparent; color: inherit;
+  font: inherit; font-size: 16px; font-weight: 600; height: 38px; padding: 0 18px 0 0; margin: 0; cursor: pointer;
+}
+.chip.sort select:focus { outline: none; }
+.chip.sort:focus-within { outline: 3px solid var(--heart); outline-offset: 2px; }
+.chip.sort::after {
+  content: ""; width: 7px; height: 7px; margin: -4px 0 0 -16px; pointer-events: none;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg);
+}
 .chip[aria-pressed="true"] b { color: inherit; opacity: 0.7; }
 
 /* ---------- list ---------- */
@@ -179,7 +196,17 @@ h2 {
 }
 .desc { margin: 5px 0 0; color: var(--muted); font-size: 0.95rem; line-height: 1.42; }
 .dish[data-status="discard"] .name { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--muted); }
-.dish[data-status="discard"] .desc { display: none; }
+.dish[data-status="discard"] .desc, .dish[data-status="discard"] .scores { display: none; }
+
+/* health and yummy estimates, 1 to 5 */
+.scores { display: flex; gap: 16px; margin-top: 12px; }
+.score { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 7px; }
+.score-label { font-size: 0.82rem; font-weight: 600; color: var(--muted); }
+.pips { flex: 1; display: flex; gap: 3px; }
+.pips i { flex: 1; height: 8px; border-radius: 4px; background: var(--line); }
+.health .pips .on { background: var(--health); }
+.yummy .pips .on { background: var(--yummy); }
+.score-num { font-size: 0.85rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 
 .heart {
   flex: none; width: 46px; height: 46px; margin: -8px -6px -10px 0;
@@ -232,6 +259,7 @@ h2 {
   <div class="hero-in">
     <h1>Bri's menu</h1>
     <p>Nick is cooking. Mark each dish Keep, Modify, or Discard, and heart the ones you really, really want.</p>
+    <p class="hint">The bars are a rough guess, out of 5, at how healthy and how yummy each dish is.</p>
   </div>
 </header>
 
@@ -259,37 +287,54 @@ h2 {
 
   /* Dish numbers are permanent: they tie each dish to its saved answer.
      Never renumber or reuse one. Add new dishes with the next unused number
-     (the database already holds rows 1 to 100). */
+     (the database already holds rows 1 to 100).
+     h and y are rough estimates out of 5: how healthy and how yummy. */
   var DISHES = [
-    { n: 1,  g: "Soups and stews", name: "Red lentil dal", desc: "Red lentils simmered with tomato, onion, garlic, ginger, turmeric, cumin, coriander, and mustard seed, with wilted spinach, lemon, and cilantro. Served over brown rice." },
-    { n: 2,  g: "Soups and stews", name: "French lentil soup", desc: "French green lentils with carrot, celery, onion, garlic, and kale in a tomato and vegetable broth with thyme and bay leaf, finished with lemon and parsley." },
-    { n: 3,  g: "Soups and stews", name: "Miso soup with tofu and soba", desc: "White miso broth with soft tofu, buckwheat soba noodles, shiitake mushrooms, baby bok choy, wakame seaweed, ginger, and scallions." },
-    { n: 4,  g: "Soups and stews", name: "Hot and sour soup", desc: "Tofu, shiitake and wood ear mushrooms, bamboo shoots, and carrot in a vegetable broth sharpened with rice vinegar, soy sauce, ginger, garlic, and white pepper, topped with scallions and a few drops of sesame oil." },
-    { n: 5,  g: "Soups and stews", name: "Roasted tomato and red pepper soup", desc: "Oven-roasted tomatoes, red bell peppers, onion, and garlic blended smooth with vegetable broth, olive oil, and smoked paprika, finished with fresh basil." },
-    { n: 6,  g: "Soups and stews", name: "Thai vegetable curry with tofu", desc: "Tofu, broccoli, red bell pepper, zucchini, carrot, and bamboo shoots in a light coconut milk red curry with ginger, garlic, lime, and Thai basil. Served with brown jasmine rice." },
+    { n: 1,  g: "Soups and stews", name: "Red lentil dal", desc: "Red lentils simmered with tomato, onion, garlic, ginger, turmeric, cumin, coriander, and mustard seed, with wilted spinach, lemon, and cilantro. Served over brown rice.", h: 5, y: 4 },
+    { n: 2,  g: "Soups and stews", name: "French lentil soup", desc: "French green lentils with carrot, celery, onion, garlic, and kale in a tomato and vegetable broth with thyme and bay leaf, finished with lemon and parsley.", h: 5, y: 3 },
+    { n: 3,  g: "Soups and stews", name: "Miso soup with tofu and soba", desc: "White miso broth with soft tofu, buckwheat soba noodles, shiitake mushrooms, baby bok choy, wakame seaweed, ginger, and scallions.", h: 5, y: 3 },
+    { n: 4,  g: "Soups and stews", name: "Hot and sour soup", desc: "Tofu, shiitake and wood ear mushrooms, bamboo shoots, and carrot in a vegetable broth sharpened with rice vinegar, soy sauce, ginger, garlic, and white pepper, topped with scallions and a few drops of sesame oil.", h: 5, y: 3 },
+    { n: 5,  g: "Soups and stews", name: "Roasted tomato and red pepper soup", desc: "Oven-roasted tomatoes, red bell peppers, onion, and garlic blended smooth with vegetable broth, olive oil, and smoked paprika, finished with fresh basil.", h: 5, y: 3 },
+    { n: 6,  g: "Soups and stews", name: "Thai vegetable curry with tofu", desc: "Tofu, broccoli, red bell pepper, zucchini, carrot, and bamboo shoots in a light coconut milk red curry with ginger, garlic, lime, and Thai basil. Served with brown jasmine rice.", h: 4, y: 4 },
 
-    { n: 7,  g: "Mains", name: "Baked tofu with roasted broccoli", desc: "Tofu marinated in soy sauce, garlic, ginger, and a little maple syrup, baked until crisp at the edges. Served with roasted broccoli, quinoa, sesame seeds, scallions, and lemon." },
-    { n: 8,  g: "Mains", name: "Tofu stir-fry", desc: "Seared tofu with bok choy, red bell pepper, mushrooms, carrot, and broccoli in a glaze of garlic, ginger, soy sauce, rice vinegar, and a little sesame oil. Served over brown rice." },
-    { n: 9,  g: "Mains", name: "Miso-glazed eggplant", desc: "Roasted eggplant halves brushed with white miso, mirin, rice vinegar, and ginger, topped with sesame seeds and scallions. Served with brown rice and a cucumber salad dressed in rice vinegar." },
-    { n: 10, g: "Mains", name: "Mushroom and lentil bolognese", desc: "Cremini mushrooms and brown lentils slow-cooked with onion, carrot, celery, garlic, crushed tomatoes, tomato paste, oregano, and basil. Served over whole wheat spaghetti or roasted spaghetti squash." },
-    { n: 11, g: "Mains", name: "Stuffed peppers", desc: "Bell peppers filled with green lentils, quinoa, tomato, zucchini, onion, garlic, cumin, and smoked paprika, baked in tomato sauce and topped with parsley." },
-    { n: 12, g: "Mains", name: "Ratatouille over farro", desc: "Eggplant, zucchini, yellow squash, bell peppers, tomato, onion, and garlic stewed in olive oil with thyme and basil, spooned over farro." },
-    { n: 13, g: "Mains", name: "Cauliflower steaks", desc: "Thick slices of cauliflower roasted with olive oil, garlic, and smoked paprika, topped with a chimichurri of parsley, cilantro, oregano, garlic, red wine vinegar, olive oil, and chili flakes. Served over quinoa with lemony arugula." },
-    { n: 14, g: "Mains", name: "Aloo gobi", desc: "Cauliflower and potato cooked with onion, tomato, garlic, ginger, turmeric, cumin, coriander, and garam masala, finished with cilantro and lemon. Served with brown basmati rice." },
-    { n: 15, g: "Mains", name: "Portobello and pepper fajitas", desc: "Sliced portobello mushrooms, bell peppers, and red onion seared with lime, garlic, cumin, chili powder, and smoked paprika. Served on warm corn tortillas with fresh tomato salsa, avocado, shredded cabbage, and cilantro." },
-    { n: 16, g: "Mains", name: "Lentil and mushroom shepherd's pie", desc: "Brown lentils and cremini mushrooms with onion, carrot, celery, garlic, tomato paste, thyme, rosemary, and vegetable broth, baked under a mash of cauliflower and potato with olive oil and chives." },
-    { n: 17, g: "Mains", name: "Cabbage rolls", desc: "Tender cabbage leaves wrapped around green lentils, brown rice, onion, carrot, garlic, dill, and paprika, baked in tomato sauce with a touch of lemon." },
+    { n: 7,  g: "Mains", name: "Baked tofu with roasted broccoli", desc: "Tofu marinated in soy sauce, garlic, ginger, and a little maple syrup, baked until crisp at the edges. Served with roasted broccoli, quinoa, sesame seeds, scallions, and lemon.", h: 5, y: 3 },
+    { n: 8,  g: "Mains", name: "Tofu stir-fry", desc: "Seared tofu with bok choy, red bell pepper, mushrooms, carrot, and broccoli in a glaze of garlic, ginger, soy sauce, rice vinegar, and a little sesame oil. Served over brown rice.", h: 4, y: 4 },
+    { n: 9,  g: "Mains", name: "Miso-glazed eggplant", desc: "Roasted eggplant halves brushed with white miso, mirin, rice vinegar, and ginger, topped with sesame seeds and scallions. Served with brown rice and a cucumber salad dressed in rice vinegar.", h: 4, y: 4 },
+    { n: 10, g: "Mains", name: "Mushroom and lentil bolognese", desc: "Cremini mushrooms and brown lentils slow-cooked with onion, carrot, celery, garlic, crushed tomatoes, tomato paste, oregano, and basil. Served over whole wheat spaghetti or roasted spaghetti squash.", h: 4, y: 4 },
+    { n: 11, g: "Mains", name: "Stuffed peppers", desc: "Bell peppers filled with green lentils, quinoa, tomato, zucchini, onion, garlic, cumin, and smoked paprika, baked in tomato sauce and topped with parsley.", h: 5, y: 3 },
+    { n: 12, g: "Mains", name: "Ratatouille over farro", desc: "Eggplant, zucchini, yellow squash, bell peppers, tomato, onion, and garlic stewed in olive oil with thyme and basil, spooned over farro.", h: 5, y: 3 },
+    { n: 13, g: "Mains", name: "Cauliflower steaks", desc: "Thick slices of cauliflower roasted with olive oil, garlic, and smoked paprika, topped with a chimichurri of parsley, cilantro, oregano, garlic, red wine vinegar, olive oil, and chili flakes. Served over quinoa with lemony arugula.", h: 4, y: 3 },
+    { n: 14, g: "Mains", name: "Aloo gobi", desc: "Cauliflower and potato cooked with onion, tomato, garlic, ginger, turmeric, cumin, coriander, and garam masala, finished with cilantro and lemon. Served with brown basmati rice.", h: 4, y: 4 },
+    { n: 15, g: "Mains", name: "Portobello and pepper fajitas", desc: "Sliced portobello mushrooms, bell peppers, and red onion seared with lime, garlic, cumin, chili powder, and smoked paprika. Served on warm corn tortillas with fresh tomato salsa, avocado, shredded cabbage, and cilantro.", h: 4, y: 4 },
+    { n: 16, g: "Mains", name: "Lentil and mushroom shepherd's pie", desc: "Brown lentils and cremini mushrooms with onion, carrot, celery, garlic, tomato paste, thyme, rosemary, and vegetable broth, baked under a mash of cauliflower and potato with olive oil and chives.", h: 4, y: 4 },
+    { n: 17, g: "Mains", name: "Cabbage rolls", desc: "Tender cabbage leaves wrapped around green lentils, brown rice, onion, carrot, garlic, dill, and paprika, baked in tomato sauce with a touch of lemon.", h: 5, y: 3 },
 
-    { n: 18, g: "Lighter meals", name: "Tempeh lettuce wraps", desc: "Crumbled tempeh cooked with shallot, garlic, ginger, lime juice, soy sauce, and chili, tossed with mint, cilantro, scallions, and toasted rice powder. Served in butter lettuce cups with cucumber and shredded carrot." },
-    { n: 19, g: "Lighter meals", name: "Summer rolls with tofu", desc: "Rice paper rolls filled with baked tofu, rice vermicelli, lettuce, cucumber, carrot, red cabbage, mint, cilantro, and Thai basil. Served with a dipping sauce of peanut butter, lime, soy sauce, garlic, and ginger." },
-    { n: 20, g: "Lighter meals", name: "Sushi bowl", desc: "Brown rice seasoned with rice vinegar, topped with tofu marinated in soy sauce and ginger, cucumber, carrot, avocado, radish, pickled ginger, nori, scallions, and sesame seeds, with a soy and wasabi dressing." },
-    { n: 21, g: "Lighter meals", name: "Quinoa tabbouleh", desc: "Quinoa tossed with plenty of parsley and mint, tomato, cucumber, scallions, lemon juice, and olive oil." },
-    { n: 22, g: "Lighter meals", name: "Warm lentil salad", desc: "French green lentils with roasted beets, arugula, shallot, parsley, dill, and toasted walnuts in a vinaigrette of Dijon mustard, red wine vinegar, and olive oil." },
-    { n: 23, g: "Lighter meals", name: "Kale and sweet potato salad", desc: "Massaged kale with roasted sweet potato, quinoa, apple, red onion, and toasted pumpkin seeds in a dressing of tahini, lemon, and garlic." },
-    { n: 24, g: "Lighter meals", name: "Tofu scramble", desc: "Crumbled tofu cooked with onion, bell pepper, mushrooms, spinach, garlic, turmeric, cumin, and nutritional yeast. Served with sliced tomato, avocado, and whole grain toast." },
+    { n: 27, g: "Pasta and noodles", name: "Creamy mushroom Alfredo", desc: "Fettuccine in a silky cashew cream sauce with garlic, lemon, nutritional yeast, and black pepper, tossed with seared cremini mushrooms, spinach, and parsley.", h: 2, y: 5 },
+    { n: 28, g: "Pasta and noodles", name: "Penne alla vodka", desc: "Penne in a blush sauce of crushed tomatoes, shallot, garlic, tomato paste, vodka, and cashew cream, with chili flakes, olive oil, and fresh basil.", h: 2, y: 5 },
+    { n: 29, g: "Pasta and noodles", name: "Pasta alla Norma", desc: "Rigatoni with roasted eggplant in a sauce of tomato, garlic, olive oil, and chili flakes, finished with fresh basil and toasted garlic breadcrumbs.", h: 3, y: 4 },
+    { n: 30, g: "Pasta and noodles", name: "Basil pesto linguine", desc: "Linguine tossed in a pesto of basil, pine nuts, garlic, olive oil, lemon, and nutritional yeast, with blistered cherry tomatoes and arugula.", h: 3, y: 4 },
+    { n: 31, g: "Pasta and noodles", name: "Baked mac and \u201ccheese\u201d", desc: "Elbow pasta baked in a creamy sauce of butternut squash, cashews, nutritional yeast, garlic, Dijon mustard, and smoked paprika, under a crisp breadcrumb topping.", h: 2, y: 5 },
+    { n: 32, g: "Pasta and noodles", name: "Spinach and mushroom lasagna", desc: "Layers of lasagna noodles, marinara, spinach, mushrooms, zucchini, and a tofu ricotta made with lemon, garlic, basil, and nutritional yeast, baked under cashew cream.", h: 3, y: 5 },
+    { n: 33, g: "Pasta and noodles", name: "Gnocchi with roasted cherry tomatoes", desc: "Pillowy potato gnocchi with cherry tomatoes roasted in olive oil, garlic, and balsamic vinegar, tossed with baby spinach, fresh basil, and toasted pine nuts.", h: 3, y: 4 },
+    { n: 34, g: "Pasta and noodles", name: "Pad Thai with tofu", desc: "Rice noodles stir-fried with golden tofu, carrot, cabbage, scallions, and garlic in a sauce of tamarind, soy sauce, lime, and coconut sugar, topped with crushed peanuts, cilantro, and chili flakes.", h: 3, y: 5 },
+    { n: 35, g: "Pasta and noodles", name: "Coconut curry ramen", desc: "Ramen noodles in a rich broth of coconut milk, red curry paste, ginger, garlic, and lime, with crispy tofu, shiitake mushrooms, bok choy, sweet corn, scallions, and chili oil.", h: 2, y: 5 },
 
-    { n: 25, g: "Nick's own recipes", name: "King oyster mushroom “scallops”", desc: "Thick rounds of king oyster mushroom seared golden with garlic, thyme, white wine, and lemon, set on cauliflower pur\u00e9e with garlicky saut\u00e9ed spinach and parsley." },
-    { n: 26, g: "Nick's own recipes", name: "Walnut tacos, lightened up", desc: "Chopped walnuts and cremini mushrooms seasoned with cumin, chili powder, smoked paprika, garlic, and lime. Served on corn tortillas with shredded cabbage, pico de gallo, avocado, and cilantro." }
+    { n: 36, g: "Comfort food", name: "Mushroom risotto", desc: "Creamy arborio rice stirred slowly with cremini and shiitake mushrooms, shallot, garlic, white wine, vegetable broth, olive oil, and thyme, finished with nutritional yeast, lemon, and parsley.", h: 3, y: 4 },
+    { n: 37, g: "Comfort food", name: "Buffalo cauliflower tacos", desc: "Cauliflower baked crisp in a breadcrumb crust and tossed in Buffalo hot sauce, served on corn tortillas with cabbage and carrot slaw, avocado, cilantro, and a cashew ranch of lemon, garlic, dill, and chives.", h: 3, y: 5 },
+    { n: 38, g: "Comfort food", name: "Margherita pizza", desc: "Hand-stretched crust with crushed tomato sauce, garlic, cashew mozzarella, olive oil, and fresh basil, topped with arugula after baking.", h: 2, y: 5 },
+    { n: 39, g: "Comfort food", name: "Tofu tikka masala", desc: "Baked tofu in a creamy sauce of tomato, onion, garlic, ginger, garam masala, cumin, turmeric, paprika, and cashew cream, finished with cilantro. Served with basmati rice and warm flatbread.", h: 3, y: 5 },
+    { n: 40, g: "Comfort food", name: "Pineapple fried rice", desc: "Jasmine rice stir-fried with tofu, pineapple, red bell pepper, carrot, scallions, garlic, and ginger in soy sauce with a pinch of curry powder, topped with toasted cashews, cilantro, and lime.", h: 3, y: 4 },
+
+    { n: 18, g: "Lighter meals", name: "Tempeh lettuce wraps", desc: "Crumbled tempeh cooked with shallot, garlic, ginger, lime juice, soy sauce, and chili, tossed with mint, cilantro, scallions, and toasted rice powder. Served in butter lettuce cups with cucumber and shredded carrot.", h: 5, y: 4 },
+    { n: 19, g: "Lighter meals", name: "Summer rolls with tofu", desc: "Rice paper rolls filled with baked tofu, rice vermicelli, lettuce, cucumber, carrot, red cabbage, mint, cilantro, and Thai basil. Served with a dipping sauce of peanut butter, lime, soy sauce, garlic, and ginger.", h: 4, y: 4 },
+    { n: 20, g: "Lighter meals", name: "Sushi bowl", desc: "Brown rice seasoned with rice vinegar, topped with tofu marinated in soy sauce and ginger, cucumber, carrot, avocado, radish, pickled ginger, nori, scallions, and sesame seeds, with a soy and wasabi dressing.", h: 4, y: 4 },
+    { n: 21, g: "Lighter meals", name: "Quinoa tabbouleh", desc: "Quinoa tossed with plenty of parsley and mint, tomato, cucumber, scallions, lemon juice, and olive oil.", h: 5, y: 3 },
+    { n: 22, g: "Lighter meals", name: "Warm lentil salad", desc: "French green lentils with roasted beets, arugula, shallot, parsley, dill, and toasted walnuts in a vinaigrette of Dijon mustard, red wine vinegar, and olive oil.", h: 5, y: 3 },
+    { n: 23, g: "Lighter meals", name: "Kale and sweet potato salad", desc: "Massaged kale with roasted sweet potato, quinoa, apple, red onion, and toasted pumpkin seeds in a dressing of tahini, lemon, and garlic.", h: 5, y: 3 },
+    { n: 24, g: "Lighter meals", name: "Tofu scramble", desc: "Crumbled tofu cooked with onion, bell pepper, mushrooms, spinach, garlic, turmeric, cumin, and nutritional yeast. Served with sliced tomato, avocado, and whole grain toast.", h: 4, y: 3 },
+
+    { n: 25, g: "Nick's own recipes", name: "King oyster mushroom “scallops”", desc: "Thick rounds of king oyster mushroom seared golden with garlic, thyme, white wine, and lemon, set on cauliflower pur\u00e9e with garlicky saut\u00e9ed spinach and parsley.", h: 4, y: 4 },
+    { n: 26, g: "Nick's own recipes", name: "Walnut tacos, lightened up", desc: "Chopped walnuts and cremini mushrooms seasoned with cumin, chili powder, smoked paprika, garlic, and lime. Served on corn tortillas with shredded cabbage, pico de gallo, avocado, and cilantro.", h: 3, y: 4 }
   ];
 
   /* ---------- shared storage (Supabase) ----------
@@ -301,6 +346,7 @@ h2 {
     apikey: API_KEY, Authorization: "Bearer " + API_KEY,
     "Content-Type": "application/json", Prefer: "return=minimal"
   };
+  var SKEY = "briMenu.sort.v1";
   var CACHE = "briMenu.state.v1";
   var QKEY = "briMenu.queue.v1";
   var STATUSES = ["keep", "modify", "discard"];
@@ -313,6 +359,9 @@ h2 {
   var timers = {};    // n -> note debounce timer
   var rows = {};      // n -> row elements
   var writeSeq = 0;
+  var sections = [];    // course sections, in menu order
+  var flat = null;      // the single section used while sorted by a rating
+  var sort = "menu";
   var leaving = false;  // true once the page is closing, so last writes outlive it
   var filter = "all";
 
@@ -446,9 +495,22 @@ h2 {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
+  function score(kind, label, v) {
+    var pips = "";
+    for (var i = 1; i <= 5; i++) pips += i <= v ? '<i class="on"></i>' : "<i></i>";
+    return '<div class="score ' + kind + '" role="img" aria-label="' + label + ": " + v + ' out of 5">' +
+      '<span class="score-label">' + label + '</span><span class="pips">' + pips + "</span>" +
+      '<span class="score-num">' + v + "</span></div>";
+  }
+
   function build() {
     var list = document.getElementById("list");
     var groups = {};
+    flat = { sec: el("section"), h2: el("h2"), ul: el("ul", "group") };
+    flat.sec.appendChild(flat.h2);
+    flat.sec.appendChild(flat.ul);
+    flat.sec.hidden = true;
+    list.appendChild(flat.sec);
     DISHES.forEach(function (d) {
       if (!groups[d.g]) {
         var sec = el("section");
@@ -457,6 +519,7 @@ h2 {
         sec.appendChild(ul);
         list.appendChild(sec);
         groups[d.g] = { sec: sec, ul: ul };
+        sections.push(groups[d.g]);
       }
       var li = el("li", "dish");
       var head = el("div", "head");
@@ -466,7 +529,9 @@ h2 {
       heart.setAttribute("aria-label", "Love it: " + d.name);
       head.appendChild(heart);
       li.appendChild(head);
+      li.dataset.n = d.n;
       li.appendChild(el("p", "desc", esc(d.desc)));
+      li.appendChild(el("div", "scores", score("health", "Health", d.h) + score("yummy", "Yummy", d.y)));
 
       var choices = el("div", "choices");
       choices.setAttribute("role", "group");
@@ -512,7 +577,7 @@ h2 {
       });
 
       groups[d.g].ul.appendChild(li);
-      rows[d.n] = { li: li, heart: heart, btns: btns, note: note, ta: ta, saved: note.querySelector(".saved"), sec: groups[d.g].sec };
+      rows[d.n] = { li: li, heart: heart, btns: btns, note: note, ta: ta, saved: note.querySelector(".saved"), home: groups[d.g] };
     });
   }
 
@@ -575,6 +640,25 @@ h2 {
   }
   function buildChips() {
     var box = document.getElementById("chips");
+    var pick = el("label", "chip sort", "<span>Sort</span>");
+    var sel = el("select");
+    sel.setAttribute("aria-label", "Sort dishes");
+    Object.keys(SORTS).forEach(function (k) {
+      var o = el("option", "", esc(SORTS[k]));
+      o.value = k;
+      sel.appendChild(o);
+    });
+    sel.value = sort;
+    sel.addEventListener("change", function () {
+      sort = SORTS[sel.value] ? sel.value : "menu";
+      try { localStorage.setItem(SKEY, sort); } catch (e) {}
+      arrange();
+      applyFilter();
+      var top = document.querySelector(".hero").offsetHeight;
+      if (window.scrollY > top) window.scrollTo(0, top);
+    });
+    pick.appendChild(sel);
+    box.appendChild(pick);
     FILTERS.forEach(function (f) {
       var b = el("button", "chip", esc(f.label) + "<b></b>");
       b.type = "button";
@@ -583,23 +667,44 @@ h2 {
       chipEls[f.id] = b;
     });
   }
+  var SORTS = { menu: "Menu order", health: "Healthiest first", yummy: "Yummiest first" };
+
+  // Menu order keeps the course sections; a rating sort puts every dish in one list,
+  // best first, with the other rating breaking ties.
+  function arrange() {
+    var order = DISHES.slice();
+    if (sort !== "menu") {
+      var a = sort === "health" ? "h" : "y";
+      var b = sort === "health" ? "y" : "h";
+      order.sort(function (p, q) {
+        return q[a] - p[a] || q[b] - p[b] || DISHES.indexOf(p) - DISHES.indexOf(q);
+      });
+      flat.h2.textContent = SORTS[sort];
+    }
+    order.forEach(function (d) {
+      (sort === "menu" ? rows[d.n].home.ul : flat.ul).appendChild(rows[d.n].li);
+    });
+  }
+
   // Rows only move in or out when a filter is tapped, so a dish never jumps away mid-edit.
   function applyFilter() {
     var any = false;
-    var seen = [];
     DISHES.forEach(function (d) {
-      var r = rows[d.n];
       var show = matches(d.n, filter);
-      r.li.hidden = !show;
-      r.li.classList.remove("first");
-      if (show) {
-        any = true;
-        if (seen.indexOf(r.sec) < 0) { seen.push(r.sec); r.li.classList.add("first"); }
-        if (get(d.n).status === "modify") grow(r.ta);
-      }
+      rows[d.n].li.hidden = !show;
+      rows[d.n].li.classList.remove("first");
+      if (show) any = true;
     });
-    Object.keys(rows).forEach(function (n) {
-      rows[n].sec.hidden = seen.indexOf(rows[n].sec) < 0;
+    sections.concat([flat]).forEach(function (g) {
+      var first = null;
+      for (var i = 0; i < g.ul.children.length && !first; i++) {
+        if (!g.ul.children[i].hidden) first = g.ul.children[i];
+      }
+      g.sec.hidden = !first;
+      if (first) first.classList.add("first");
+    });
+    DISHES.forEach(function (d) {
+      if (!rows[d.n].li.hidden && get(d.n).status === "modify") grow(rows[d.n].ta);
     });
     var empty = document.getElementById("empty");
     empty.hidden = any;
@@ -625,8 +730,11 @@ h2 {
   /* ---------- start ---------- */
   state = readJSON(CACHE);
   queue = readJSON(QKEY);
+  try { sort = localStorage.getItem(SKEY) || "menu"; } catch (e) {}
+  if (!SORTS[sort]) sort = "menu";
   build();
   buildChips();
+  arrange();
   DISHES.forEach(function (d) { renderRow(d.n); });
   renderCounts();
   applyFilter();
